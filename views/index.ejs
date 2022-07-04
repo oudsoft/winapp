@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link href="images/icon.png" rel="shortcut icon" type="image/x-icon"/>
+    <title><%= title %></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  	<script type="text/javascript" src="lib/jquery.js"></script>
+  	<script type="text/javascript" src="lib/jquery-ui.min.js"></script>
+  	<script type="text/javascript" src="lib/jquery.loading.min.js"></script>
+    <script type="text/javascript" src="lib/notify.min.js"></script>
+    <script type="text/javascript" src="lib/simpleUpload.min.js"></script>
+    <link rel='stylesheet' href='lib/jquery-ui.min.css' />
+    <link rel='stylesheet' href='stylesheets/style.css' />
+  	<script type="text/javascript" src="js/main.js"></script>
+  	<script type="text/javascript" src="lib/jqury-readystate-plugin.js"></script>
+  </head>
+  <body>
+    <div id="radconnext-logo-div">
+    	<img src="images/logo-radconnext.png" />
+    </div>
+    <h1><%= title %></h1>
+	<div id="welcome-message-div">
+		<p><%= title %> ยินดีต้อนรับเข้าสู่ระบบนำเข้าภาพทางการแพทย์</p>
+	</div>
+  <div id="local-today-div"></div>
+	<div id="portal-cmd-div">
+		<button id="loacal-import-cmd" style="width: 100%;">นำเข้าภาพทางการแพทย์จาก CD/File</button>
+		<button id="cloud-import-cmd"  style="width: 100%; margin-top: 10px;">นำเข้าภาพทางการแพทย์จาก Cloud</button>
+	</div>
+	<div id="portal-import-div"></div>
+  </body>
+</html>
