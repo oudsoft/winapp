@@ -1,0 +1,54 @@
+<div class="wrapper">
+  <div class="row">
+    <div class="column side" id="MenuWrapper">
+      <div id="Menu"></div>
+    </div>
+
+    <div class="column middle">
+      <div class="titlepageview table-view" id="TitlePageView">
+        <div class="titlepage row" id="TitlePage">
+          <div class="title-content column" id="TitleContent"></div>
+          <div class="title-user-info column" id="TitleUserInfo">
+            <div class="row">
+              <div class="hosplital-name column" id="HospitalNameBox"></div>
+              <div class="user-displayname column" id="UserDisplayNameBox"></div>
+            </div>
+            <div class="row">
+              <div class="column"></div>
+              <div class="logout-cmd-hide column" id="LogoutCmdBox">
+                <img id="LogoutIcon" src="/images/user-logout-icon-3.png" width="20px" height="auto"/>
+                <h4 id="LogoutCmd">ออกจากระบบ</h4>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    	<div class="mainfull" id="MainContent">
+
+    	</div>
+      <div class="footer" id="FooterPage">
+        <h3 style="margin-top: auto; margin-bottom: auto;">COPYRIGHT RAD CONNEXT CO., LTD.</h3>
+      </div>
+    </div>
+
+  </div>
+</div>
+<script>
+  let userdata = JSON.parse(localStorage.getItem('userdata'));
+  //console.log(userdata);
+  let userDisplayName = userdata.userinfo.User_NameTH + ' ' + userdata.userinfo.User_LastNameTH;
+  if ((userdata.usertypeId == 1) || (userdata.usertypeId == 4)) {
+    $('#HospitalNameBox').empty();
+  } else {
+    $('#HospitalNameBox').append($('<h4>โรงพยาบาล' + userdata.hospital.Hos_Name + '</h4>'));
+  }
+  $('#UserDisplayNameBox').append($('<h4>' + userDisplayName + '</h4>'));
+  $('#UserDisplayNameBox').on('click', (evt)=>{
+    $('#LogoutCmdBox').toggle();
+  });
+
+  $('#LogoutCmd').on('click', (evt)=>{
+    let eventData = {userId: userdata.id};
+    $('#LogoutCmd').trigger('userlogout', [eventData]);
+  });
+</script>

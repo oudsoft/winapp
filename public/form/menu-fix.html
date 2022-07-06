@@ -1,0 +1,436 @@
+<div class="menu-hide">
+  <div id="NavHeader">
+  </div>
+
+  <!-- Home Menu -->
+  <div class="NavTable">
+    <div class="NavRow" id="HomeMainCmd" data-dd="*", data-dm="*">
+      <div class="NavRowIconCell">
+        <img src="/images/orthanc-icon-3.png" width="30px" height="auto" style="margin-top: 3px;"/>
+      </div>
+      <div class="NavRowTextCell">
+        ภาพในระบบ [All]
+      </div>
+      <div class="NavRowIconCell"></div>
+      <div class="NavRowIconCell">
+        <div class="arrow-left"></div>
+      </div>
+    </div>
+    <div class="NavSubHide">
+      <div class="NavSub MenuCmd" id="CRFilterAllCmd" data-dd="*", data-dm="CR">
+        <div class="NavSubIconCell"></div>
+        <div class="NavSubTextCell" style="padding-left: 30px;">
+          CR
+        </div>
+        <div class="NavSubIconCell">
+          <div class="arrow-left"></div>
+        </div>
+      </div>
+      <div class="NavSub MenuCmd" id="CTFilterAllCmd"  data-dd="*", data-dm="CT">
+        <div class="NavSubIconCell"></div>
+        <div class="NavSubTextCell" style="padding-left: 30px;">
+          CT
+        </div>
+        <div class="NavSubIconCell">
+          <div class="arrow-left"></div>
+        </div>
+      </div>
+      <div class="NavSub MenuCmd" id="MGFilterAllCmd"  data-dd="*", data-dm="MG">
+        <div class="NavSubIconCell"></div>
+        <div class="NavSubTextCell" style="padding-left: 30px;">
+          MG
+        </div>
+        <div class="NavSubIconCell">
+          <div class="arrow-left"></div>
+        </div>
+      </div>
+      <div class="NavSub MenuCmd" id="USFilterAllCmd"  data-dd="*", data-dm="US">
+        <div class="NavSubIconCell"></div>
+        <div class="NavSubTextCell" style="padding-left: 30px;">
+          US
+        </div>
+        <div class="NavSubIconCell">
+          <div class="arrow-left"></div>
+        </div>
+      </div>
+      <div class="NavSub MenuCmd" id="MRFilterAllCmd"  data-dd="*", data-dm="MR">
+        <div class="NavSubIconCell"></div>
+        <div class="NavSubTextCell" style="padding-left: 30px;">
+          MR
+        </div>
+        <div class="NavSubIconCell">
+          <div class="arrow-left"></div>
+        </div>
+      </div>
+      <div class="NavSub MenuCmd" id="XAFilterAllCmd" data-dd="*", data-dm="XA">
+        <div class="NavSubIconCell"></div>
+        <div class="NavSubTextCell" style="padding-left: 30px;">
+          XA
+        </div>
+        <div class="NavSubIconCell">
+          <div class="arrow-left"></div>
+        </div>
+      </div>
+      <!--
+      <div class="NavSub" id="ALLFilterAllCmd"  data-dd="*", data-dm="*">
+        <div class="NavSubIconCell"></div>
+        <div class="NavSubTextCell" style="padding-left: 30px;">
+          All
+        </div>
+        <div class="NavSubIconCell">
+          <div class="arrow-left"></div>
+        </div>
+      </div>
+      -->
+    </div>
+    <!-- Case Menu -->
+    <div class="NavRow" id="CaseMainCmd">
+      <div class="NavRowIconCell">
+        <img src="/images/case-incident-icon-2.png" width="30px" height="auto"/>
+      </div>
+      <div class="NavRowTextCell">
+        เคสส่งอ่าน
+      </div>
+      <div class="NavRowIconCell"></div>
+      <div class="NavRowIconCell">
+        <div class="arrow-left"></div>
+      </div>
+    </div>
+    <div class="NavSubHide">
+      <div class="NavSub" id="NewStatusSubCmd">
+        <div class="NavSubIconCell"></div>
+        <div class="NavSubIconCell">
+          <img src="/images/new-case-icon.png" width="30px" height="auto"/>
+        </div>
+        <div class="NavSubTextCell">
+          เคสใหม่ <span class="case-counter"></span>
+        </div>
+        <div class="NavSubIconCell">
+          <div class="arrow-left"></div>
+        </div>
+      </div>
+      <div class="NavSub" id="AcceptedStatusSubCmd">
+        <div class="NavSubIconCell"></div>
+        <div class="NavSubIconCell">
+          <img src="/images/case-accepted-icon-1.png" width="30px" height="auto"/>
+        </div>
+        <div class="NavSubTextCell">
+          หมอตอบรับแล้ว(รอผลอ่าน) <span class="case-counter"></span>
+        </div>
+        <div class="NavSubIconCell">
+          <div class="arrow-left"></div>
+        </div>
+      </div>
+      <div class="NavSub" id="SuccessStatusSubCmd">
+        <div class="NavSubIconCell"></div>
+        <div class="NavSubIconCell">
+          <img src="/images/case-accepted-icon.png" width="30px" height="auto"/>
+        </div>
+        <div class="NavSubTextCell">
+          ได้ผลอ่านแล้ว <span class="case-counter"></span>
+        </div>
+        <div class="NavSubIconCell">
+          <div class="arrow-left"></div>
+        </div>
+      </div>
+      <div class="NavSub" id="NegativeStatusSubCmd">
+        <div class="NavSubIconCell"></div>
+        <div class="NavSubIconCell">
+          <img src="/images/fail-icon.png" width="30px" height="auto"/>
+        </div>
+        <div class="NavSubTextCell">
+          เคสไม่สมบูรณ์/รอคำสั่ง <span class="case-counter"></span>
+        </div>
+        <div class="NavSubIconCell">
+          <div class="arrow-left"></div>
+        </div>
+      </div>
+      <div class="NavSub" id="SearchCaseSubCmd">
+        <div class="NavSubIconCell"></div>
+        <div class="NavSubIconCell">
+          <img src="/images/search-icon-4.png" width="30px" height="auto"/>
+        </div>
+        <div class="NavSubTextCell">
+          ค้นหาเคส
+        </div>
+        <div class="NavSubIconCell">
+          <div class="arrow-left"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Consult Menu -->
+    <div class="NavRow" id="ConsultMainCmd">
+      <div class="NavRowIconCell">
+        <img src="/images/consult-icon.png" width="30px" height="auto"/>
+      </div>
+      <div class="NavRowTextCell">
+        Consult
+      </div>
+      <div class="NavRowIconCell"></div>
+      <div class="NavRowIconCell">
+        <div class="arrow-left"></div>
+      </div>
+    </div>
+    <div class="NavSubHide">
+      <div class="NavSub" id="NewConsultSubCmd">
+        <div class="NavSubIconCell"></div>
+        <div class="NavSubIconCell">
+          <img src="/images/chat-icon.png" width="30px" height="auto"/>
+        </div>
+        <div class="NavSubTextCell">
+          สร้าง Consult ใหม่ <!-- <span class="consult-counter"></span> -->
+        </div>
+        <div class="NavSubIconCell">
+          <div class="arrow-left"></div>
+        </div>
+      </div>
+      <div class="NavSub" id="MyConsultSubCmd">
+        <div class="NavSubIconCell"></div>
+        <div class="NavSubIconCell">
+          <img src="/images/chat-history-icon.png" width="30px" height="auto"/>
+        </div>
+        <div class="NavSubTextCell">
+          รายการ Consult ของฉัน <span class="consult-counter"></span>
+        </div>
+        <div class="NavSubIconCell">
+          <div class="arrow-left"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tools Menu -->
+    <div class="NavRow" id="ToolsMainCmd">
+      <div class="NavRowIconCell">
+        <img src="/images/tools-icon.png" width="30px" height="auto"/>
+      </div>
+      <div class="NavRowTextCell">
+        เครื่องมือ
+      </div>
+      <div class="NavRowIconCell"></div>
+      <div class="NavRowIconCell">
+        <div class="arrow-left"></div>
+      </div>
+    </div>
+    <div class="NavSubHide">
+      <div class="NavSub" id="ReportPetternSubCmd">
+        <div class="NavSubIconCell"></div>
+        <div class="NavSubIconCell">
+          <img src="/images/format-design-icon.png" width="30px" height="auto"/>
+        </div>
+        <div class="NavSubTextCell">
+          ตั้งค่ารูปแบบรายงานผลอ่าน
+        </div>
+        <div class="NavSubIconCell">
+          <div class="arrow-left"></div>
+        </div>
+      </div>
+
+      <div class="NavSub" id="ScanpartAuxConfigSubCmd">
+        <div class="NavSubIconCell"></div>
+        <div class="NavSubIconCell">
+          <img src="/images/item-list-icon.png" width="30px" height="auto"/>
+        </div>
+        <div class="NavSubTextCell">
+          ตั้งค่าจดจำ Scan Part
+        </div>
+        <div class="NavSubIconCell">
+          <div class="arrow-left"></div>
+        </div>
+      </div>
+
+      <div class="NavSub" id="StdUrgentConfigSubCmd">
+        <div class="NavSubIconCell"></div>
+        <div class="NavSubIconCell">
+          <img src="/images/urgent-icon.png" width="30px" height="auto"/>
+        </div>
+        <div class="NavSubTextCell">
+          Urgent ของฉัน
+        </div>
+        <div class="NavSubIconCell">
+          <div class="arrow-left"></div>
+        </div>
+      </div>
+      <div class="NavSub" id="GoToPortalSubCmd">
+        <div class="NavSubIconCell"></div>
+        <div class="NavSubIconCell">
+          <img src="/images/portal-icon.png" width="30px" height="auto"/>
+        </div>
+        <div class="NavSubTextCell">
+          Portal
+        </div>
+        <div class="NavSubIconCell">
+          <div class="arrow-left"></div>
+        </div>
+      </div>
+      <div class="NavSub" id="UserInfoSubCmd">
+        <div class="NavSubIconCell"></div>
+        <div class="NavSubIconCell">
+          <img src="/images/user-info-icon.png" width="30px" height="auto"/>
+        </div>
+        <div class="NavSubTextCell">
+          ข้อมูลของฉัน
+        </div>
+        <div class="NavSubIconCell">
+          <div class="arrow-left"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  let yourUserdata = JSON.parse(localStorage.getItem('userdata'));
+  //console.log(yourUserdata);
+  //let yourToken = localStorage.getItem('token');
+  //console.log(yourToken);
+
+  function showCmdActive(cmdClick){
+    let myNavRow = $(cmdClick).parent().prev('.NavRow');
+    $(myNavRow).next('.NavSubHide').find('.NavSub').find('.arrow-left').hide();
+    $(cmdClick).find('.arrow-left').show();
+  }
+
+  function doRotate(elem, degree) {
+    // For webkit browsers: e.g. Chrome
+    $(elem).css({ WebkitTransform: 'rotate(' + degree + 'deg)'});
+    // For Mozilla browser: e.g. Firefox
+    $(elem).css({ '-moz-transform': 'rotate(' + degree + 'deg)'});
+  }
+
+  $('.NavRow').click(function (e){
+    let thisId = $(this).prop('id');
+    if($(this).next('.NavSubHide').css('display') !== 'block'){
+      $(this).addClass('NavActive');
+      $(this).find('.arrow-left').show();
+      $(this).next('.NavSubHide').slideDown('slow').removeClass('NavActive');
+      $('.NavRow').each((i, row)=>{
+        let rowId = $(row).prop('id');
+        if ((rowId !== thisId) && ($(row).hasClass('NavActive'))) {
+          $(row).next('.NavSubHide').find('.arrow-left').hide();
+          $(row).removeClass('NavActive');
+          $(row).find('.arrow-left').hide();
+          $(row).next('.NavSubHide').slideUp('fast').removeClass('NavActive');
+        }
+      });
+    } else {
+      $(this).removeClass('NavActive');
+      $(this).find('.arrow-left').hide();
+      $(this).next('.NavSubHide').slideUp('fast').removeClass('NavActive');
+    }
+  });
+
+  $('.MenuCmd').click((evt)=>{
+    let cmdId = $(evt.currentTarget).prop('id');
+    let dd = $(evt.currentTarget).data('dd');
+    let dm = $(evt.currentTarget).data('dm');
+    let eventData = {userId: yourUserdata.id, cmdId: cmdId, studyFromDate: dd, modality: dm};
+    $(evt.currentTarget).trigger('openhome', [eventData]);
+    $('.MenuCmd').not($(evt.currentTarget)).removeClass('NavActive');
+    $(evt.currentTarget).addClass('NavActive');
+  });
+
+  $('.NavSub').click((evt)=>{
+    showCmdActive(evt.currentTarget);
+    $('.NavSub').not($(evt.currentTarget)).removeClass('NavActive');
+    $(evt.currentTarget).addClass('NavActive');
+
+    let navSubHide = $(evt.currentTarget).parent();
+    let navRow = $(navSubHide).prev();
+    let arrow = $(navRow).find('.arrow-left');
+    doRotate(arrow, -90);
+  });
+
+  $('#HomeMainCmd').click((evt)=>{
+    let cmdId = $(evt.currentTarget).prop('id');
+    let dd = $(evt.currentTarget).data('dd');
+    let dm = $(evt.currentTarget).data('dm');
+    let eventData = {userId: yourUserdata.id, cmdId: cmdId, studyFromDate: dd, modality: dm};
+    $(evt.currentTarget).trigger('openhome', [eventData]);
+  });
+
+  /*
+  $('#ALLFilterAllCmd').click((evt)=>{
+    let eventData = {userId: yourUserdata.id};
+    $('#ALLFilterAllCmd').trigger('opendicomfilter', [eventData]);
+  });
+  */
+  $('#NewStatusSubCmd').click((evt)=>{
+    let eventData = {userId: yourUserdata.id};
+    $('#NewStatusSubCmd').trigger('opennewstatuscase', [eventData]);
+  });
+
+  $('#AcceptedStatusSubCmd').click((evt)=>{
+    let eventData = {userId: yourUserdata.id};
+    $('#AcceptedStatusSubCmd').trigger('openacceptedstatuscase', [eventData]);
+  });
+
+  $('#SuccessStatusSubCmd').click((evt)=>{
+    let eventData = {userId: yourUserdata.id};
+    $('#SuccessStatusSubCmd').trigger('opensuccessstatuscase', [eventData]);
+  });
+
+  $('#NegativeStatusSubCmd').click((evt)=>{
+    let eventData = {userId: yourUserdata.id};
+    $('#NegativeStatusSubCmd').trigger('opennegativestatuscase', [eventData]);
+  });
+
+  $('#SearchCaseSubCmd').click((evt)=>{
+    let eventData = {userId: yourUserdata.id};
+    $('#SearchCaseSubCmd').trigger('opensearchcase', [eventData]);
+  });
+
+  $('#ReportPetternSubCmd').click((evt)=>{
+    let eventData = {userId: yourUserdata.id, hospitalId: yourUserdata.hospitalId};
+    $('#SearchCaseSubCmd').trigger('openreportdesign', [eventData]);
+  });
+
+  $('#ScanpartAuxConfigSubCmd').click((evt)=>{
+    let eventData = {userId: yourUserdata.id};
+    $('#SearchCaseSubCmd').trigger('openscanpartprofile', [eventData]);
+  });
+
+  $('#GoToPortalSubCmd').click((evt)=>{
+    let eventData = {userId: yourUserdata.id};
+    $('#GoToPortalSubCmd').trigger('gotoportal', [eventData]);
+  });
+
+  $('#NewConsultSubCmd').click((evt)=>{
+    let eventData = {userId: yourUserdata.id};
+    $('#NewConsultSubCmd').trigger('newconsult', [eventData]);
+  });
+
+  $('#MyConsultSubCmd').click((evt)=>{
+    let eventData = {userId: yourUserdata.id};
+    $('#MyConsultSubCmd').trigger('myconsult', [eventData]);
+  });
+
+  $('#StdUrgentConfigSubCmd').click((evt)=>{
+    let eventData = {userId: yourUserdata.id};
+    $('#StdUrgentConfigSubCmd').trigger('stdurgentconfig', [eventData]);
+  });
+
+  $('#UserInfoSubCmd').click((evt)=>{
+    let eventData = {userId: yourUserdata.id};
+    $('#UserInfoSubCmd').trigger('openedituserinfo', [eventData]);
+  });
+
+  let systemLogo = $('<img src="/images/logo/radconnext-logo.png" width="70%" height="auto" style="cursor: pointer; margin-top: 10px;"/>');
+  $(systemLogo).on('click', (evt)=>{
+    if (yourUserdata.usertypeId == 2) {
+      window.location.replace('/case/index.html?t=1');
+    } else if (yourUserdata.usertypeId == 5) {
+      window.location.replace('/refer/index.html?t=1');
+    }
+  });
+  $('#NavHeader').append($(systemLogo));
+
+  $('.NavRowTextCell, .NavSubTextCell').css({'color': 'white'});
+  $('.NavRowTextCell, .NavSubTextCell').hover(
+    (evt)=>{$(evt.currentTarget).css({'color': 'black'})},
+    (evt)=>{$(evt.currentTarget).css({'color': 'white'})}
+  );
+
+
+</script>
