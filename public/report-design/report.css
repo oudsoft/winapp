@@ -1,0 +1,125 @@
+@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@200&family=Prompt:wght@100&display=swap');
+@font-face { font-family: THSarabunNew; src: url("../font/THSarabunNew.ttf");}
+@font-face { font-family: THSarabunNewBold; src: url("../font/THSarabunNew Bold.ttf");}
+
+
+/* Style the top navigation bar */
+.topnav {
+  overflow: hidden;
+  background-color: #333;
+}
+
+/* Style the topnav links */
+.topnav a {
+  float: left;
+  display: block;
+  color: #f2f2f2;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+  font-size: 24px;
+  font-family: THSarabunNew;
+  font-weight: normal;
+}
+
+/* Clear floats after the columns */
+.row {
+  width: 100%;
+}
+
+.row:after {
+  /*
+  content: "";
+  display: table;
+  clear: both;
+  */
+}
+
+/* Create three unequal columns that floats next to each other */
+.column {
+  float: left;
+  padding: 4px;
+  /*
+  font-family: THSarabunNew;
+  */
+  font-size: 20px;
+  font-weight: normal;
+}
+
+/* Left and right column */
+.column.side {
+  width: 18%;
+}
+
+/* Middle column */
+.column.middle {
+  /*
+  width: 1004px;
+  max-width: 1004px;
+  height: 1410px;
+  max-height: 1410px;
+  */
+  width: 79%;
+}
+
+#report-container {
+  position: relative;
+  border: 2px solid red;
+  width: 100%;
+  /*
+  height: 1410px;
+  max-height: 1410px;
+  */
+}
+
+#report-item {
+  background-color: gray;
+  border: 2px solid yellow;
+  height: 100vh;
+  padding: 2px;
+  height: 1410px;
+  max-height: 1410px;
+}
+
+#report-property {
+  background-color: rgba(17, 99, 71, 0.7);
+  border: 2px solid blue;
+  /* height: 100vh; */
+  min-height: 110px;
+  margin-top: 20px;
+  padding: 2px;
+  /* font-family: THSarabunNew; */
+}
+
+#selectable .ui-selecting { background: #FECA40; }
+#selectable .ui-selected { background: #F39814; color: white; }
+#selectable { list-style-type: none; margin: 0; padding: 0; width: 96%; }
+#selectable li { margin: 2px; padding: 0.2em; font-size: 1.0em; height: 23px; text-align: center;}
+
+.reportElement {position: absolute; padding: 0px; overflow: visible; /* font-family: THSarabunNew;*/ line-height: 22px;}
+.textElement {border: 2px solid yellow;}
+.hrElement {border: 2px solid yellow;}
+.imageElement {border: 2px solid yellow;}
+
+.elementActive {border: 2px dashed red;}
+.cmd-link {position: relative; min-width: 100px;}
+.cmd-link:hover {background-color: #ddd; color: black;}
+.icon-cmd {cursor: pointer; width: 30px; height: auto; position: absolute; display: inline-block; left: 4px;}
+.text-cmd {cursor: pointer; position: relative ; display: inline-block; left: 5px;}
+input[type="button"] {
+  font-size: 18px;
+  /* font-family: THSarabunNew; */
+  font-weight: normal;
+}
+
+b, strong {font-size: 16px;}
+
+p {
+  line-height: 26px;
+  margin: 10px 0;
+}
+
+.icon-element {cursor: pointer; width: 30px; height: auto; position: absolute; display: inline-block; left: 35px;}
+.text-element {cursor: pointer; position: relative ; display: inline-block; left: 10px;}
+.blankPage { position: absolute; width: 100%; min-height: 1410px; /* border: 2px solid blue;*/}
+.unuse-text {color: red; position: absolute; bottom: 0px; text-align: center;}

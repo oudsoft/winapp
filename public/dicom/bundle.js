@@ -1339,7 +1339,7 @@ module.exports = function ( jq ) {
 
 		let fromDateKeyBox = $('<div style="text-align: left; display: inline-block;"></div>'); //<span>ตั้งแต่</span>
 		$(fromDateKeyBox).appendTo($(formField));
-		let fromDateKey = $('<input type="text" id="FromDateKey" size="6" style="margin-left: 5px;"/>');
+		let fromDateKey = $('<input type="text" id="FromDateKey" style="margin-left: 5px; width: 40px;"/>');
 		if (key.fromDateKeyValue) {
 			let arrTmps = key.fromDateKeyValue.split('-');
 			let fromDateTextValue = arrTmps[2] + '-' + arrTmps[1] + '-' + arrTmps[0];
@@ -1353,7 +1353,7 @@ module.exports = function ( jq ) {
 
 		let toDateKeyBox = $('<div style="text-align: left; display: inline-block;"></div>'); //<span>ถึง</span>
 		$(toDateKeyBox).appendTo($(formField));
-		let toDateKey = $('<input type="text" id="ToDateKey" size="6" style="margin-left: 5px;"/>');
+		let toDateKey = $('<input type="text" id="ToDateKey" size="6" style="margin-left: 5px; width: 40px;"/>');
 		if (key.toDateKeyValue) {
 			let arrTmps = key.toDateKeyValue.split('-');
 			let toDateTextValue = arrTmps[2] + '-' + arrTmps[1] + '-' + arrTmps[0];
@@ -1366,7 +1366,7 @@ module.exports = function ( jq ) {
 		$(formField).appendTo($(searchFormRow));
 
 		formField = $('<div style="display: table-cell; text-align: left; vertical-align: middle;" class="header-cell"></div>');
-		let patientNameENKey = $('<input type="text" id="PatientNameENKey" size="8"/>');
+		let patientNameENKey = $('<input type="text" id="PatientNameENKey" style="width: 140px;"/>');
 		$(patientNameENKey).val(key.patientNameENKeyValue);
 		$(formField).append($(patientNameENKey));
 		$(formField).appendTo($(searchFormRow));
@@ -6339,7 +6339,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../radio/mod/ai-lib.js":25,"../main.js":1,"./apiconnect.js":2,"./commonlib.js":5,"./createnewrefferal.js":8,"./utilmod.js":18}],8:[function(require,module,exports){
+},{"../../radio/mod/ai-lib.js":26,"../main.js":1,"./apiconnect.js":2,"./commonlib.js":5,"./createnewrefferal.js":8,"./utilmod.js":18}],8:[function(require,module,exports){
 /*createnewrefferal.js*/
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -8815,7 +8815,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../radio/mod/websocketmessage.js":26,"../../refer/mod/websocketmessage.js":27,"./websocketmessage.js":20}],19:[function(require,module,exports){
+},{"../../radio/mod/websocketmessage.js":27,"../../refer/mod/websocketmessage.js":28,"./websocketmessage.js":20}],19:[function(require,module,exports){
 (function (global){(function (){
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.VideoStreamMerger = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 "use strict";module.exports=VideoStreamMerger;function VideoStreamMerger(a){var b=this;if(!(b instanceof VideoStreamMerger))return new VideoStreamMerger(a);a=a||{};var c=window.AudioContext||window.webkitAudioContext,d=!!(c&&(b._audioCtx=a.audioContext||new c).createMediaStreamDestination),e=!!document.createElement("canvas").captureStream;if(!(d&&e))throw new Error("Unsupported browser");b.width=a.width||400,b.height=a.height||300,b.fps=a.fps||25,b.clearRect=!(a.clearRect!==void 0)||a.clearRect,b._canvas=document.createElement("canvas"),b._canvas.setAttribute("width",b.width),b._canvas.setAttribute("height",b.height),b._canvas.setAttribute("style","position:fixed; left: 110%; pointer-events: none"),b._ctx=b._canvas.getContext("2d"),b._streams=[],b._audioDestination=b._audioCtx.createMediaStreamDestination(),b._setupConstantNode(),b.started=!1,b.result=null,b._backgroundAudioHack()}VideoStreamMerger.prototype.getAudioContext=function(){var a=this;return a._audioCtx},VideoStreamMerger.prototype.getAudioDestination=function(){var a=this;return a._audioDestination},VideoStreamMerger.prototype.getCanvasContext=function(){var a=this;return a._ctx},VideoStreamMerger.prototype._backgroundAudioHack=function(){var a=this,b=a._audioCtx.createConstantSource(),c=a._audioCtx.createGain();c.gain.value=.001,b.connect(c),c.connect(a._audioCtx.destination),b.start()},VideoStreamMerger.prototype._setupConstantNode=function(){var a=this,b=a._audioCtx.createConstantSource();b.start();var c=a._audioCtx.createGain();c.gain.value=0,b.connect(c),c.connect(a._audioDestination)},VideoStreamMerger.prototype.updateIndex=function(a,b){var c=this;"string"==typeof a&&(a={id:a}),b=null==b?0:b;for(var d=0;d<c._streams.length;d++)a.id===c._streams[d].id&&(c._streams[d].index=b);c._sortStreams()},VideoStreamMerger.prototype._sortStreams=function(){var a=this;a._streams=a._streams.sort(function(c,a){return c.index-a.index})},VideoStreamMerger.prototype.addMediaElement=function(a,b,c){var d=this;if(c=c||{},c.x=c.x||0,c.y=c.y||0,c.width=c.width||d.width,c.height=c.height||d.height,c.mute=c.mute||c.muted||!1,c.oldDraw=c.draw,c.oldAudioEffect=c.audioEffect,c.draw="VIDEO"===b.tagName||"IMG"===b.tagName?function(a,d,e){c.oldDraw?c.oldDraw(a,b,e):(a.drawImage(b,c.x,c.y,c.width,c.height),e())}:null,!c.mute){var e=b._mediaElementSource||d.getAudioContext().createMediaElementSource(b);b._mediaElementSource=e,e.connect(d.getAudioContext().destination);var f=d.getAudioContext().createGain();e.connect(f),b.muted?(b.muted=!1,b.volume=.001,f.gain.value=1e3):f.gain.value=1,c.audioEffect=function(a,b){c.oldAudioEffect?c.oldAudioEffect(f,b):f.connect(b)},c.oldAudioEffect=null}d.addStream(a,c)},VideoStreamMerger.prototype.addStream=function(a,b){var c=this;if("string"==typeof a)return c._addData(a,b);b=b||{};for(var d={isData:!1,x:b.x||0,y:b.y||0,width:b.width||c.width,height:b.height||c.height,draw:b.draw||null,mute:b.mute||b.muted||!1,audioEffect:b.audioEffect||null,index:null==b.index?0:b.index,hasVideo:0<a.getVideoTracks().length},e=null,f=0;f<c._streams.length;f++)c._streams[f].id===a.id&&(e=c._streams[f].element);e||(e=document.createElement("video"),e.autoplay=!0,e.muted=!0,e.srcObject=a,e.setAttribute("style","position:fixed; left: 0px; top:0px; pointer-events: none; opacity:0;"),document.body.appendChild(e),!d.mute&&(d.audioSource=c._audioCtx.createMediaStreamSource(a),d.audioOutput=c._audioCtx.createGain(),d.audioOutput.gain.value=1,d.audioEffect?d.audioEffect(d.audioSource,d.audioOutput):d.audioSource.connect(d.audioOutput),d.audioOutput.connect(c._audioDestination))),d.element=e,d.id=a.id||null,c._streams.push(d),c._sortStreams()},VideoStreamMerger.prototype.removeStream=function(a){var b=this;"string"==typeof a&&(a={id:a});for(var c=0;c<b._streams.length;c++)a.id===b._streams[c].id&&(b._streams[c].audioSource&&(b._streams[c].audioSource=null),b._streams[c].audioOutput&&(b._streams[c].audioOutput.disconnect(b._audioDestination),b._streams[c].audioOutput=null),b._streams[c]=null,b._streams.splice(c,1),c--)},VideoStreamMerger.prototype._addData=function(a,b){var c=this;b=b||{};var d={};d.isData=!0,d.draw=b.draw||null,d.audioEffect=b.audioEffect||null,d.id=a,d.element=null,d.index=null==b.index?0:b.index,d.audioEffect&&(d.audioOutput=c._audioCtx.createGain(),d.audioOutput.gain.value=1,d.audioEffect(null,d.audioOutput),d.audioOutput.connect(c._audioDestination)),c._streams.push(d),c._sortStreams()},VideoStreamMerger.prototype._requestAnimationFrame=function(a){var b=!1,c=setInterval(function(){!b&&document.hidden&&(b=!0,clearInterval(c),a())},1e3/self.fps);requestAnimationFrame(function(){b||(b=!0,clearInterval(c),a())})},VideoStreamMerger.prototype.start=function(){var a=this;a.started=!0,a._requestAnimationFrame(a._draw.bind(a)),a.result=a._canvas.captureStream(a.fps);var b=a.result.getAudioTracks()[0];b&&a.result.removeTrack(b);var c=a._audioDestination.stream.getAudioTracks();a.result.addTrack(c[0])},VideoStreamMerger.prototype._draw=function(){function a(){c--,0>=c&&b._requestAnimationFrame(b._draw.bind(b))}var b=this;if(b.started){var c=b._streams.length;b.clearRect&&b._ctx.clearRect(0,0,b.width,b.height),b._streams.forEach(function(c){c.draw?c.draw(b._ctx,c.element,a):!c.isData&&c.hasVideo?(b._ctx.drawImage(c.element,c.x,c.y,c.width,c.height),a()):a()}),0===b._streams.length&&a()}},VideoStreamMerger.prototype.destroy=function(){var a=this;a.started=!1,a._canvas=null,a._ctx=null,a._streams=[],a._audioCtx.close(),a._audioCtx=null,a._audioDestination=null,a.result.getTracks().forEach(function(a){a.stop()}),a.result=null};
@@ -20442,6 +20442,8 @@ return jQuery;
 
 window.$ = window.jQuery = require('jquery');
 
+const submain = require('./mod/submainlib.js')($);
+
 const util = require('../../case/mod/utilmod.js')($);
 const common = require('../../case/mod/commonlib.js')($);
 
@@ -20449,10 +20451,10 @@ const userinfo = require('../../case/mod/userinfolib.js')($);
 const userprofile = require('../../case/mod/userprofilelib.js')($);
 const casecounter = require('../../case/mod/casecounter.js')($);
 const softphone = require('../../case/mod/softphonelib.js')($);
-const masternotify = require('../../case/mod/master-notify.js')($);
 const urgentstd = require('../../case/mod/urgentstd.js')($);
 const consult = require('../../case/mod/consult.js')($);
 const portal = require('../../case/mod/portal-lib.js')($);
+const cases = require('../../case/mod/case.js')($);
 
 var wsm, sipUA;
 
@@ -20616,10 +20618,92 @@ const doLoadMainPage = function(){
       });
 
       $(document).on('openscanpartprofile', (evt, data)=>{
-				showScanpartAux();
+				submain.showScanpartAux();
 			});
 
-      doAddNotifyCustomStyle();
+      $(document).on('openreportdesign', (evt, data)=>{
+				$('body').loading('start');
+				$(".mainfull").empty();
+				let reportDesignUrl = '../report-design/index.html?hosid=' + data.hospitalId;
+				window.location.replace(reportDesignUrl);
+				$('body').loading('stop');
+			});
+
+      $(document).on('opennewstatuscase', async (evt, data)=>{
+				let titlePage = $('<div></div>');
+				let logoPage = $('<img src="/images/case-incident-icon-2.png" width="40px" height="auto" style="position: relative; display: inline-block; top: 10px;"/>');
+				$(logoPage).appendTo($(titlePage));
+				let titleContent = $('<div style="position: relative; display: inline-block; margin-left: 10px;"><h3>เคสส่งอ่าน [เคสใหม่] -รอตอบรับจากรังสีแพทย์</h3></div>');
+				$(titleContent).appendTo($(titlePage));
+				$("#TitleContent").empty().append($(titlePage));
+				let rqParams = { hospitalId: userdata.hospitalId, statusId: common.caseReadWaitStatus };
+				cases.doLoadCases(rqParams).then(()=>{
+          common.doScrollTopPage();
+        });
+			});
+
+      $(document).on('openacceptedstatuscase', async (evt, data)=>{
+				let resultTitle = $('<div"></div>');
+				let logoPage = $('<img src="/images/case-incident-icon-2.png" width="40px" height="auto" style="position: relative; display: inline-block; top: 10px;"/>');
+				$(logoPage).appendTo($(resultTitle));
+				let titleResult = $('<div style="position: relative; display: inline-block; margin-left: 10px;"><h3>เคสส่งอ่าน [ตอบรับแล้ว] -รอผลอ่าน</h3></div>');
+				$(titleResult).appendTo($(resultTitle));
+				$("#TitleContent").empty().append($(resultTitle));
+				let rqParams = { hospitalId: userdata.hospitalId, /*userId: userdata.id,*/ statusId: common.casePositiveStatus };
+				cases.doLoadCases(rqParams).then(()=>{
+          common.doScrollTopPage();
+        });
+			});
+
+      $(document).on('opensuccessstatuscase', async (evt, data)=>{
+				let resultTitle = $('<div></div>');
+				let logoPage = $('<img src="/images/case-incident-icon-2.png" width="40px" height="auto" style="position: relative; display: inline-block; top: 10px;"/>');
+				$(logoPage).appendTo($(resultTitle));
+				let titleResult = $('<div style="position: relative; display: inline-block; margin-left: 10px;"><h3>เคสส่งอ่าน [ได้ผลอ่านแล้ว]</h3></div>');
+				$(titleResult).appendTo($(resultTitle));
+				$("#TitleContent").empty().append($(resultTitle));
+				let rqParams = { hospitalId: userdata.hospitalId, /*userId: userdata.id,*/ statusId: common.caseReadSuccessStatus };
+				cases.doLoadCases(rqParams).then(()=>{
+          common.doScrollTopPage();
+        });
+			});
+
+      $(document).on('opennegativestatuscase', async (evt, data)=>{
+				let resultTitle = $('<div></div>');
+				let logoPage = $('<img src="/images/case-incident-icon-2.png" width="40px" height="auto" style="position: relative; display: inline-block; top: 10px;"/>');
+				$(logoPage).appendTo($(resultTitle));
+				let titleResult = $('<div style="position: relative; display: inline-block; margin-left: 10px;"><h3>รายการเคสไม่สมบูรณ์/รอคำสั่ง</h3></div>');
+				$(titleResult).appendTo($(resultTitle));
+				$("#TitleContent").empty().append($(resultTitle));
+				let rqParams = { hospitalId: userdata.hospitalId, /*userId: userdata.id,*/ statusId: common.caseNegativeStatus };
+				cases.doLoadCases(rqParams).then(()=>{
+          common.doScrollTopPage();
+        });
+			});
+
+      $(document).on('opensearchcase', async (evt, data)=>{
+				$('body').loading('start');
+        let yesterDayFormat = util.getYesterdayDevFormat();
+        let toDayFormat = util.getTodayDevFormat();
+				let defaultSearchKey = {fromDateKeyValue: yesterDayFormat, toDateKeyValue: toDayFormat, patientNameENKeyValue: '*', patientHNKeyValue: '*', bodypartKeyValue: '*', caseStatusKeyValue: 0};
+				let defaultSearchParam = {key: defaultSearchKey, hospitalId: userdata.hospitalId, userId: userdata.id, usertypeId: userdata.usertypeId};
+
+				let searchTitlePage = cases.doCreateSearchTitlePage();
+
+				$("#TitleContent").empty().append($(searchTitlePage));
+				let response = await common.doCallApi('/api/cases/search/key', defaultSearchParam);
+				$('body').loading('stop');
+				if (response.status.code === 200) {
+					let searchResultViewDiv = $('<div id="SearchResultView"></div>');
+					$(".mainfull").empty().append($(searchResultViewDiv));
+					await cases.doShowSearchResultCallback(response);
+          common.doScrollTopPage();
+				} else {
+					$(".mainfull").append('<h3>ระบบค้นหาเคสขัดข้อง โปรดแจ้งผู้ดูแลระบบ</h3>');
+				}
+			});
+
+      submain.doAddNotifyCustomStyle();
 
       doInitDefualPage();
 
@@ -20631,18 +20715,7 @@ const doInitDefualPage = function(){
   $('body').loading('start');
   casecounter.doSetupCounter().then(async(loadRes)=>{
     actionAfterSetupCounter();
-    $('.mainfull').attr('tabindex', 1);
-    $('.mainfull').on('keydown', async (evt)=>{
-      if (event.ctrlKey && event.key === 'Z') {
-        let masterNotifyView = $('.mainfull').find('#MasterNotifyView');
-        if ($(masterNotifyView).length > 0) {
-          $(masterNotifyView).remove();
-        } else {
-          masterNotifyView = await masternotify.doShowMessage(userdata.id);
-          $('.mainfull').append($(masterNotifyView));
-        }
-      }
-    });
+    submain.doInitShowMasterNotify();
     $('body').loading('stop');
   });
 }
@@ -20666,70 +20739,99 @@ const actionAfterSetupCounter = function(){
   doTriggerLoadDicom();
 }
 
-const showScanpartAux = async function() {
-  const userdata = JSON.parse(localStorage.getItem('userdata'));
-	const deleteCallback = async function(scanpartAuxId) {
-		$('body').loading('start');
-		let rqParams = {id: scanpartAuxId};
-		let scanpartauxRes = await common.doCallApi('/api/scanpartaux/delete', rqParams);
-		if (scanpartauxRes.status.code == 200) {
-			$.notify("ลบรายการ Scan Part สำเร็จ", "success");
-			showScanpartAux();
-		} else {
-			$.notify("ไม่สามารถลบรายการ Scan Part ได้ในขณะนี้", "error");
-		}
-		$('body').loading('stop');
-	}
+},{"../../case/mod/case.js":3,"../../case/mod/casecounter.js":4,"../../case/mod/commonlib.js":5,"../../case/mod/consult.js":6,"../../case/mod/portal-lib.js":12,"../../case/mod/softphonelib.js":13,"../../case/mod/urgentstd.js":15,"../../case/mod/userinfolib.js":16,"../../case/mod/userprofilelib.js":17,"../../case/mod/utilmod.js":18,"./mod/submainlib.js":24,"jquery":25}],24:[function(require,module,exports){
+/*submainlib.js*/
+module.exports = function ( jq ) {
+	const $ = jq;
+  
+  const masternotify = require('../../../case/mod/master-notify.js')($);
 
-	$('body').loading('start');
+  const showScanpartAux = async function() {
+    const userdata = JSON.parse(localStorage.getItem('userdata'));
+  	const deleteCallback = async function(scanpartAuxId) {
+  		$('body').loading('start');
+  		let rqParams = {id: scanpartAuxId};
+  		let scanpartauxRes = await common.doCallApi('/api/scanpartaux/delete', rqParams);
+  		if (scanpartauxRes.status.code == 200) {
+  			$.notify("ลบรายการ Scan Part สำเร็จ", "success");
+  			showScanpartAux();
+  		} else {
+  			$.notify("ไม่สามารถลบรายการ Scan Part ได้ในขณะนี้", "error");
+  		}
+  		$('body').loading('stop');
+  	}
 
-  let pageLogo = $('<img src="/images/urgent-icon.png" width="40px" height="auto" style="position: relative; display: inline-block; top: 10px;"/>');
-  let titleText = $('<div style="position: relative; display: inline-block; margin-left: 10px;"><h3>รายการ Scan Part ของฉัน</h3></div>');
-  let titleBox = $('<div></div>').append($(pageLogo)).append($(titleText));
-  $("#TitleContent").empty().append($(titleBox));
+  	$('body').loading('start');
 
-	let userId = userdata.id;
-	let rqParams = {userId: userId};
-	let scanpartauxs = await common.doCallApi('/api/scanpartaux/user/list', rqParams);
-	if (scanpartauxs.Records.length > 0) {
-		let scanpartAuxBox = await userprofile.showScanpartProfile(scanpartauxs.Records, deleteCallback);
-		$(".mainfull").empty().append($(scanpartAuxBox));
-	} else {
-		$(".mainfull").append($('<h4>ไม่พบรายการ Scan Part ของคุณ</h4>'));
-	}
-	$('body').loading('stop');
-}
+    let pageLogo = $('<img src="/images/urgent-icon.png" width="40px" height="auto" style="position: relative; display: inline-block; top: 10px;"/>');
+    let titleText = $('<div style="position: relative; display: inline-block; margin-left: 10px;"><h3>รายการ Scan Part ของฉัน</h3></div>');
+    let titleBox = $('<div></div>').append($(pageLogo)).append($(titleText));
+    $("#TitleContent").empty().append($(titleBox));
 
-const doAddNotifyCustomStyle = function(){
-  $.notify.addStyle('myshopman', {
-    html: "<div class='superblue'><span data-notify-html/></div>",
-    classes: {
-      base: {
-        "border": "3px solid white",
-        "border-radius": "20px",
-        "color": "white",
-        "background-color": "#184175",
-        "padding": "10px"
-      },
-      green: {
-        "border": "3px solid white",
-        "border-radius": "20px",
-        "color": "white",
-        "background-color": "green",
-        "padding": "10px"
-      },
-      red: {
-        "border": "3px solid white",
-        "border-radius": "20px",
-        "color": "white",
-        "background-color": "red",
-        "padding": "10px"
+  	let userId = userdata.id;
+  	let rqParams = {userId: userId};
+  	let scanpartauxs = await common.doCallApi('/api/scanpartaux/user/list', rqParams);
+  	if (scanpartauxs.Records.length > 0) {
+  		let scanpartAuxBox = await userprofile.showScanpartProfile(scanpartauxs.Records, deleteCallback);
+  		$(".mainfull").empty().append($(scanpartAuxBox));
+  	} else {
+  		$(".mainfull").append($('<h4>ไม่พบรายการ Scan Part ของคุณ</h4>'));
+  	}
+  	$('body').loading('stop');
+  }
+
+  const doAddNotifyCustomStyle = function(){
+    $.notify.addStyle('myshopman', {
+      html: "<div class='superblue'><span data-notify-html/></div>",
+      classes: {
+        base: {
+          "border": "3px solid white",
+          "border-radius": "20px",
+          "color": "white",
+          "background-color": "#184175",
+          "padding": "10px"
+        },
+        green: {
+          "border": "3px solid white",
+          "border-radius": "20px",
+          "color": "white",
+          "background-color": "green",
+          "padding": "10px"
+        },
+        red: {
+          "border": "3px solid white",
+          "border-radius": "20px",
+          "color": "white",
+          "background-color": "red",
+          "padding": "10px"
+        }
       }
-    }
-  });
+    });
+  }
+
+  const doInitShowMasterNotify = function(){
+    $('.mainfull').attr('tabindex', 1);
+    $('.mainfull').on('keydown', async (evt)=>{
+      if (event.ctrlKey && event.key === 'Z') {
+        let masterNotifyView = $('.mainfull').find('#MasterNotifyView');
+        if ($(masterNotifyView).length > 0) {
+          $(masterNotifyView).remove();
+        } else {
+          masterNotifyView = await masternotify.doShowMessage(userdata.id);
+          $('.mainfull').append($(masterNotifyView));
+        }
+      }
+    });
+  }
+
+	return {
+    showScanpartAux,
+    doAddNotifyCustomStyle,
+    doInitShowMasterNotify
+  }
 }
 
-},{"../../case/mod/casecounter.js":4,"../../case/mod/commonlib.js":5,"../../case/mod/consult.js":6,"../../case/mod/master-notify.js":11,"../../case/mod/portal-lib.js":12,"../../case/mod/softphonelib.js":13,"../../case/mod/urgentstd.js":15,"../../case/mod/userinfolib.js":16,"../../case/mod/userprofilelib.js":17,"../../case/mod/utilmod.js":18,"jquery":24}],24:[function(require,module,exports){
+},{"../../../case/mod/master-notify.js":11}],25:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.6.0
  * https://jquery.com/
@@ -31612,7 +31714,7 @@ if ( typeof noGlobal === "undefined" ) {
 return jQuery;
 } );
 
-},{}],25:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 /*ai-lib.js*/
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -31902,7 +32004,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../case/mod/apiconnect.js":2,"../../case/mod/commonlib.js":5,"../../case/mod/utilmod.js":18}],26:[function(require,module,exports){
+},{"../../case/mod/apiconnect.js":2,"../../case/mod/commonlib.js":5,"../../case/mod/utilmod.js":18}],27:[function(require,module,exports){
 /* websocketmessage.js */
 module.exports = function ( jq, wsm) {
 	const $ = jq;
@@ -32051,7 +32153,7 @@ module.exports = function ( jq, wsm) {
 	}
 }
 
-},{"../../case/mod/wrtc-common.js":21}],27:[function(require,module,exports){
+},{"../../case/mod/wrtc-common.js":21}],28:[function(require,module,exports){
 /* websocketmessage.js */
 module.exports = function ( jq, wsm ) {
 	const $ = jq;

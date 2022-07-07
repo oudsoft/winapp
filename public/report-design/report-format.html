@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <link href="../favicon.ico" rel="shortcut icon" type="image/x-icon"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Rad Connext Report Format</title>
+    <link href="report.css" rel="stylesheet">
+  	<script type="text/javascript" src="../lib/jquery.js"></script>
+    <script type="text/javascript" src="../lib/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="jquery-report-plugin.js"></script>
+    <script type="text/javascript" src="report-generator.js"></script>
+    <script type="text/javascript">
+      function urlQueryToObject(url) {
+      	let result = url.split(/[?&]/).slice(1).map(function(paramPair) {
+      				return paramPair.split(/=(.+)?/).slice(0, 2);
+      		}).reduce(function (obj, pairArray) {
+      				obj[pairArray[0]] = pairArray[1];
+      				return obj;
+      		}, {});
+      	return result;
+      }
+
+      $( document ).ready(function() {
+        let testDATE = new Date();
+        console.log(testDATE);
+        let testTIME = testDATE.toLocaleTimeString('en-GB');
+        console.log(testTIME);
+
+        $.ajaxSetup({
+          beforeSend: function(xhr) {
+            xhr.setRequestHeader('Authorization', localStorage.getItem('token'));
+          }
+        });
+
+        doSetReportParams(1, 7, 3);
+        doLoadReportFormat(1, (reportHTML) =>{
+          console.log(reportHTML);
+        });
+      });
+
+      const doTest = function(){
+        $('#report-wrapper').empty();
+      }
+    </script>
+  </head>
+  <body>
+    <div id="report-wrapper">Hello World</div>
+  </body>
+</html>
