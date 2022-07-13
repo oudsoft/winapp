@@ -11,6 +11,7 @@ var router = express.Router();
 var { createReadStream, createWriteStream } = require('fs');
 
 var util = require('../lib/utility.js')(log);
+var dicom = require('../lib/dicom-lib.js')(log);
 
 var formatTodayStr = function(){
   /*
@@ -36,12 +37,6 @@ var formatTodayStr = function(){
 }
 
 var getYesterdayStr = function(){
-  /*
-  const offset = 7;
-  var d = new Date();
-  let utc = d.getTime();
-  d = new Date(utc + (3600000 * offset));
-  */
   var d = new Date();
   d.setDate(d.getDate() - 1);
   var yy, mm, dd, hh;
@@ -59,16 +54,38 @@ var getYesterdayStr = function(){
   return `${yy}${mm}${dd}`;
 }
 
-var doDownloadStudyArchive = function(studyID){
+var getLastMonthStr = function(){
+  var d = new Date();
+  d.setDate(d.getMonth() - 1);
+  var yy, mm, dd, hh;
+  yy = d.getFullYear();
+  if (d.getMonth() + 1 < 10) {
+    mm = '0' + (d.getMonth() + 1);
+  } else {
+    mm = '' + (d.getMonth() + 1);
+  }
+  if (d.getDate() < 10) {
+    dd = '0' + d.getDate();
+  } else {
+    dd = '' + d.getDate();
+  }
+  return `${yy}${mm}${dd}`;
+}
+
+var doDownloadStudyArchive = function(studyID, usrArchiveFileName){
   return new Promise(async function(resolve, reject){
     let promiseList = new Promise(async function(resolve2, reject2){
-      var usrArchiveDir = path.normalize(__dirname + '/../public/img/usr/zip');
+      const zipPath = '/img/usr/zip';
+      var usrArchiveDir = path.normalize(__dirname + '/../public' + zipPath);
       var archiveFileName = studyID + '.zip';
+      if (usrArchiveFileName) {
+        archiveFileName = usrArchiveFileName;
+      }
       var archiveFilePath = usrArchiveDir + '/' + archiveFileName;
       var command = 'curl --user demo:demo http://localhost:8042/studies/' + studyID + '/archive > ' + archiveFilePath;
       var stdout = await util.runcommand(command);
       setTimeout(()=> {
-        resolve2({archive: archiveFilePath, result: stdout});
+        resolve2({archive: zipPath + '/' + archiveFileName, result: stdout});
       },1200);
     });
     Promise.all([promiseList]).then((ob)=>{
@@ -121,6 +138,26 @@ var doCallImportDicomFromArchive = function (studyID) {
   });
 }
 
+var doCallSeries = function(seriesId) {
+  return new Promise(async function(resolve, reject){
+    let command = 'curl --user demo:demo http://localhost:8042/series/' + seriesId;
+    util.runcommand(command).then(async(stdout)=>{
+      let seriesJSON = JSON.parse(stdout);
+      resolve(seriesJSON);
+    });
+  });
+}
+
+var doCallStudy = function(studyId) {
+  return new Promise(async function(resolve, reject){
+    let command = 'curl --user demo:demo http://localhost:8042/studies/' + studyId;
+    util.runcommand(command).then(async(stdout)=>{
+      let studyJSON = JSON.parse(stdout);
+      resolve(studyJSON);
+    });
+  });
+}
+
 var doResetImageCounter = function(studyID){
   return new Promise(async function(resolve, reject){
     let addNewDicomParams = '{\\"hospitalId\\": \\"5\\", \\"resourceType\\": \\"study\\", \\"resourceId\\": \\"' + studyID + '\\"}';
@@ -132,6 +169,27 @@ var doResetImageCounter = function(studyID){
     resolve(stdout);
   });
 }
+
+var doCountImageInstance = function(studyID){
+  return new Promise(async function(resolve, reject){
+    let studyDicom = await doCallStudy(studyID);
+    let seriesList = studyDicom.Series;
+    let dicomImgCount = 0;
+    let promiseList = new Promise(function(resolve2, reject2){
+      seriesList.forEach(async (seriesId) => {
+        let seriesDicom = await doCallSeries(seriesId);
+        dicomImgCount += seriesDicom.Instances.length;
+      });
+      setTimeout(()=> {
+        resolve2(dicomImgCount);
+      },1000);
+    });
+    Promise.all([promiseList]).then((ob)=>{
+      resolve(ob[0]);
+    });
+  });
+}
+
 router.post('/study/list/today', function(req, res, next) {
   let command = 'curl --user demo:demo http://localhost:8042/tools/find -d "{\\"Level\\":\\"Study\\",\\"Query\\":{\\"StudyDate\\": \\"' + formatTodayStr() + '-\\"}, \\"Expand\\":true}"';
   log.info('command=> ' + command);
@@ -148,6 +206,55 @@ router.post('/study/list/yesterday', function(req, res, next) {
     log.info('stdout=> ' + stdout);
     res.status(200).send({status: {code: 200}, result: JSON.parse(stdout)});
   });
+});
+
+router.post('/study/list/lastmonth', function(req, res, next) {
+  let command = 'curl --user demo:demo http://localhost:8042/tools/find -d "{\\"Level\\":\\"Study\\",\\"Query\\":{\\"StudyDate\\": \\"' + getLastMonthStr() + '-\\"}, \\"Expand\\":true}"';
+  //log.info('command=> ' + command);
+  util.runcommand(command).then((stdout)=>{
+    //log.info('stdout=> ' + stdout);
+    let studies = JSON.parse(stdout);
+    const promiseList = new Promise(async function(resolve2, reject2) {
+      for (let i=0; i < studies.length; i++) {
+        for (let j=0; j < studies[i].Series.length; j++) {
+          let seriesJSON = await doCallSeries(studies[i].Series[j]);
+          if ((seriesJSON.MainDicomTags.SeriesDate) || (seriesJSON.MainDicomTags.SeriesDescription)) {
+            studies[i].SamplingSeries = seriesJSON;
+            break;
+          }
+        }
+      }
+      setTimeout(()=> {
+        resolve2(studies);
+      },500);
+    });
+    Promise.all([promiseList]).then(async(ob)=> {
+      res.status(200).send({status: {code: 200}, result: ob[0]});
+    }).catch((err)=>{
+      res.status(400).send({status: {code: 400}, error: err});
+    });
+  });
+});
+
+router.post('/select/study/(:studyId)', function(req, res, next) {
+  let studyId = req.params.studyId;
+  doCallStudy(studyId).then((studyJSON)=>{
+    res.status(200).send({status: {code: 200}, result: studyJSON});
+  })
+});
+
+router.post('/delete/study', async function(req, res, next) {
+  let studyID = req.body.StudyID;
+  let command = 'curl --user demo:demo -X DELETE http://localhost:8042/studies/' + studyID;
+  let stdout = await util.runcommand(command);
+  res.status(200).send({status: {code: 200}, result: JSON.parse(stdout)});
+});
+
+router.post('/select/series/(:seriesId)', function(req, res, next) {
+  let seriesId = req.params.seriesId;
+  doCallSeries(seriesId).then((seriesJSON)=>{
+    res.status(200).send({status: {code: 200}, result: seriesJSON});
+  })
 });
 
 router.post('/study/count/instance', function(req, res, next) {
@@ -246,16 +353,6 @@ router.post('/reset/local', async function(req, res, next) {
 });
 
 router.post('/study/upload/archive', async function(req, res, next) {
-  /*
-  let studyID = req.body.studyID;
-  let zipPath = await doDownloadStudyArchive(studyID);
-  let uploadRes = await doUploadArchive(zipPath.archive);
-  let importRes = await doCallImportDicomFromArchive(studyID);
-  setTimeout(async()=>{
-    let stdout = await doResetImageCounter(studyID);
-    res.status(200).send({status: {code: 200}, result: {upload: uploadRes, dicomlog: stdout}});
-  }, 1822);
-  */
   let usrArchiveDir = path.normalize(__dirname + '/../public/img/usr/zip');
   let archiveFileName = 'multi2.zip';
   let archiveFilePath = usrArchiveDir + '/' + archiveFileName;
@@ -267,11 +364,34 @@ router.post('/study/upload/archive', async function(req, res, next) {
   res.status(200).send({status: {code: 200}, result: {upload: uploadRes}});
 });
 
+router.post('/download/dicom/archive', async function(req, res) {
+  let studyID = req.body.StudyID
+  let usrArchiveFileName = req.body.UsrArchiveFileName
+  let downloadRes = await doDownloadStudyArchive(studyID, usrArchiveFileName);
+  res.status(200).send({status: {code: 200}, result: downloadRes});
+});
+
 router.post('/reset/image/counter', async function(req, res) {
   let studyID = req.body.studyID;
   let stdout = await doResetImageCounter(studyID);
   res.status(200).send({status: {code: 200}, result: stdout});
 });
 
+router.post('/study/count/instances', async function(req, res) {
+  let studyID = req.body.StudyID;
+  let result = await doCountImageInstance(studyID);
+  res.status(200).send({status: {code: 200}, result: result});
+});
+
+router.post('/transfer/dicom', async function(req, res) {
+  let studyTags = req.body.StudyTags;
+  let hrPatientFiles = req.body.HrPatientFiles;
+  let dicomZipFileName = req.body.DicomZipFileName;
+  let studyID = studyTags.ID;
+  let newHrPatientFiles = await dicom.doDownloadHrPatientFiles(hrPatientFiles);
+  let result1 = await dicom.doConvertJPG2DCM(newHrPatientFiles, studyTags);
+  res.status(200).send({status: {code: 200}, result: {HrPatientFiles: newHrPatientFiles, convert: result1}});
+  let result2 = await dicom.doTransferDicomZipFile(studyID, dicomZipFileName);
+});
 
 module.exports = router;
