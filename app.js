@@ -5,13 +5,12 @@ const logger = require('winston');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 
-var log, util, upload, webSocketServer, clientSocket;
+var log, util, upload, orthanc, webSocketServer, clientSocket;
 
 
 const index = require(path.join(__dirname, 'routes', 'index'));
 const users = require(path.join(__dirname, 'routes', 'users'));
 const ris = require(path.join(__dirname, 'routes', 'ris'));
-const orthanc = require(path.join(__dirname, 'routes', 'orthanc'));
 
 const app = express();
 
@@ -37,7 +36,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', index);
 app.use('/users', users);
 app.use('/ris', ris);
-app.use('/orthanc', orthanc);
+//app.use('/orthanc', orthanc);
 
 app.post('/proxy', (req, res) => {
 	let rqParams = req.body;
@@ -63,7 +62,8 @@ module.exports = (httpserver, monitor) => {
 
 	clientSocket.setLocalWebsocketServer(webSocketServer);
 
-	upload = require(path.join(__dirname, 'routes', 'uploader.js')) (app, webSocketServer, clientSocket);
+	upload = require('./routes/uploader.js')(app, webSocketServer, clientSocket, monitor);
+	orthanc = require('./routes/orthanc.js')(app, webSocketServer, clientSocket, monitor);
 
 	return app;
 }

@@ -11,9 +11,10 @@ const exec = require('child_process').exec;
 //const express = require('express');
 //const router = express.Router();
 
-const log = require('electron-log');
-log.transports.console.level = 'info';
-log.transports.file.level = 'info';
+//const log = require('electron-log');
+//log.transports.console.level = 'info';
+//log.transports.file.level = 'info';
+var log;
 
 const USRUPLOAD_DIR = process.env.USRUPLOAD_DIR;
 const USRUPLOAD_PATH = process.env.USRUPLOAD_PATH;
@@ -69,11 +70,12 @@ const getFileSize = function(filename) {
 	  return (size / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + ['B', 'KB', 'MB', 'GB', 'TB'][i];
 }
 
-module.exports = (app, wsServer, wsClient) =>{
+module.exports = (app, wsServer, wsClient, monitor) =>{
+	log = monitor;
 	var localSocket = wsServer;
 	var cloudSocket = wsClient;
 
-	log.info('cloudSocket=>' + cloudSocket);
+	//log.info('cloudSocket=>' + cloudSocket);
 
 	app.post('/cloud/socket/status', function(req, res) {
 		res.status(200).send({status: {code: 200}, socket: {status: cloudSocket.state}});

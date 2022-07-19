@@ -222,6 +222,15 @@ function RadconWebSocketServer (arg, log, wsClient) {
 		});
 	}
 
+	this.sendNotify = function (notify) {
+		return new Promise(async function(resolve, reject) {
+			await $this.clients.forEach((client) =>{
+				client.send(JSON.stringify(notify));
+			});
+			resolve();
+		});
+	}
+
 	this.runCommand = function (command) {
 		return new Promise(function(resolve, reject) {
 			const exec = require('child_process').exec;

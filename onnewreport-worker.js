@@ -193,7 +193,7 @@ const doCopyDicomInstancToPacs = function(seriesInstanceUID){
 
 const doEventProcess = function(data){
   return new Promise(async(resolve, reject)=>{
-    log.info('Data for me.=>'+ JSON.stringify(data));
+    //log.info('Data for me.=>'+ JSON.stringify(data));
     let convertReportReses = [];
     let promiseList = new Promise(async function(resolve2, reject2) {
       /*
@@ -232,18 +232,23 @@ const doEventProcess = function(data){
       },1800);
     });
     Promise.all([promiseList]).then((ob)=> {
-      let rqParams = {
-        body: data.risParams,
-        /* Viruchsil */
-        //url: 'http://192.168.1.108/EnvisionRIEGet3rdPartyDataAi/Service/GetResult',
-        /* Taweesak */
-        url: 'http://172.16.5.100:9301/EnvisionRIEGet3rdPartyDataAi/Service/GetResult',
-        method: 'post'
+      if (process.env.ENVISION_URL) {
+        let rqParams = {
+          body: data.risParams,
+          /* Viruchsil */
+          //url: 'http://192.168.1.108/EnvisionRIEGet3rdPartyDataAi/Service/GetResult',
+          /* Taweesak */
+          //url: 'http://172.16.5.100:9301/EnvisionRIEGet3rdPartyDataAi/Service/GetResult',
+          url: process.env.ENVISION_URL,
+          method: 'post'
+        }
+        util.proxyRequest(rqParams).then((proxyRes)=>{
+      		log.info('proxyRes=>'+ JSON.stringify(proxyRes));
+      		resolve(proxyRes);
+      	});
+      } else {
+        resolve(ob[0]);
       }
-      util.proxyRequest(rqParams).then((proxyRes)=>{
-    		log.info('proxyRes=>'+ JSON.stringify(proxyRes));
-    		resolve(proxyRes);
-    	});
     });
   });
 }

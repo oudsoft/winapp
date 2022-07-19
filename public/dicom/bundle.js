@@ -701,7 +701,7 @@ const hostIP = 'localhost';
 const hostOrthancApiPort = '8042';
 const hostName = hostIP + ':' + hostApiPort;
 const domainName = 'radconnext.com';
-const adminEmailAddress = 'oudsoft@gmail.com';
+const adminEmailAddress = 'oudsoft@yahoo.com';
 
 
 //const hostURL = 'https://radconnext.com/rad_test/api';
@@ -2220,9 +2220,27 @@ module.exports = function ( jq ) {
 		let reportRes = await common.doCallApi('/api/casereport/select/' + caseId, {});
 		//console.log(reportRes);
 		if (reportRes.Records.length > 0){
-			let pdfReportLink = reportRes.Records[0].PDF_Filename  + '?t=' + common.genUniqueID();
-			let pdfDialog = doCreateResultPDFDialog(pdfReportLink);
-			$("#dialog").append($(pdfDialog));
+			let pdfReportLink = 'https://radconnext.info' + reportRes.Records[0].PDF_Filename  + '?t=' + common.genUniqueID();
+			console.log(pdfReportLink);
+			//let pdfDialog = doCreateResultPDFDialog(pdfReportLink);
+			let pdfDialog = $('<object data="' + pdfReportLink + '" type="application/pdf" width="99%" height="380"></object>');
+			//$("#dialog").append($(pdfDialog));
+			const reportformoption = {
+  			title: 'ผลอ่าน',
+  			msg: $(pdfDialog),
+  			width: '720px',
+				okLabel: ' เปิดหน้าต่างใหม่ ',
+				cancelLabel: ' ปิด ',
+  			onOk: async function(evt) {
+					window.open(pdfReportLink, '_blank');
+          reportPdfDlgHandle.closeAlert();
+  			},
+  			onCancel: function(evt){
+  				reportPdfDlgHandle.closeAlert();
+  			}
+  		}
+  		let reportPdfDlgHandle = $('body').radalert(reportformoption);
+
 			let viewLog = {action: 'view', by: userdata.id, at: new Date()};
 			let callRes = await common.doCallApi('/api/casereport/appendlog/' + caseId, {Log: viewLog});
 			/*
@@ -8705,14 +8723,16 @@ module.exports = function ( jq ) {
 	  const paths = window.location.pathname.split('/');
 	  const rootname = paths[1];
 
-		console.log(protocol);
-
 		let wsProtocol = 'ws://';
-		if (protocol == 'https') {
+		if (protocol == 'https:') {
 			wsProtocol = 'wss://';
 		}
-	  //const wsUrl = 'wss://' + hostname + ':' + port + '/' + rootname + '/' + username + '/' + hospitalId + '?type=' + type;
-		const wsUrl = wsProtocol + hostname + ':' + port + '/' + username + '/' + hospitalId + '?type=' + connecttype;
+
+		let wsUrl = wsProtocol + hostname + ':' + port + '/' + username + '/' + hospitalId + '?type=' + connecttype;
+		if (hostname == 'localhost') {
+			wsUrl = 'wss://radconnext.info/' + username + '/' + hospitalId + '?type=' + connecttype;
+		}
+
 	  wsm = new WebSocket(wsUrl);
 		wsm.onopen = function () {
 			//console.log('Master Websocket is connected to the signaling server')
@@ -20625,7 +20645,7 @@ $( document ).ready(function() {
   $('head').append('<script src="' + radUtilityPlugin + '"></script>');
   setTimeout(()=>{
 	   initPage();
-  }, 800);
+  }, 1200);
 });
 
 const doLoadLogin = function(){
@@ -20672,6 +20692,9 @@ const doLoadMainPage = function(){
   $('head').append('<link rel="stylesheet" href="https://radconnext.info/case/css/style.css" type="text/css" />');
   $('head').append('<link rel="stylesheet" href="https://radconnext.info/case/css/main-fix.css" type="text/css" />');
   $('head').append('<link rel="stylesheet" href="https://radconnext.info/case/css/menu-fix.css" type="text/css" />');
+
+  document.addEventListener("triggernewdicom", submain.onNewDicomTransferTrigger);
+  document.addEventListener("triggercasemisstake", submain.onCaseMisstakeNotifyTrigger);
 
   let mainFile= '../form/main-fix.html';
   let menuFile = '../form/menu-fix.html';
@@ -20839,6 +20862,7 @@ module.exports = function ( jq ) {
 	const util = require('../../../case/mod/utilmod.js')($);
   const common = require('../../../case/mod/commonlib.js')($);
   const newreffuser = require('../../../case/mod/createnewrefferal.js')($);
+	const submain = require('./submainlib.js')($);
 
   const phProp = {
     attachFileUploadApiUrl: 'https://radconnext.info/api/uploadpatienthistory',
@@ -21761,28 +21785,38 @@ module.exports = function ( jq ) {
 	      const cliamerightId = newCaseData.patientRights
 	      let caseData = common.doPrepareCaseParams(newCaseData);
 
-        await doPrepareTransferDicomZip(caseData, patientData, defualtValue);
+				let currentTime = new Date().toTimeString().replace(/.*(\d{2}:\d{2}:\d{2}).*/, "$1");
+	      currentTime = currentTime.split(':').join('');
+	      let dicomZipFileName = fmtStr('%s_%s-%s-%s-%s.zip', patientData.Patient_NameEN, patientData.Patient_LastNameEN, defualtValue.studyTags.MainDicomTags.StudyDate, defualtValue.studyTags.MainDicomTags.StudyTime, currentTime);
 
-	      rqParams = {data: caseData, hospitalId: hospitalId, userId: userId, patientId: patientId, urgenttypeId: urgenttypeId, cliamerightId: cliamerightId, option: newCaseData.option};
+				caseData.Case_DicomZipFilename = dicomZipFileName;
 
-	      let caseRes = await common.doCallApi('/api/cases/add', rqParams);
-	      if (caseRes.status.code === 200) {
-					console.log('caseActions=>', caseRes.actions);
-					//let advanceDicom = await apiconnector.doCrateDicomAdvance(defualtValue.studyID, hospitalId);
-	        $.notify("บันทึกเคสใหม่เข้าสู่ระบบเรียบร้อยแล้ว", "success");
-					if (userdata.usertypeId == 2) {
-						let isActive = $('#CaseMainCmd').hasClass('NavActive');
-						if (!isActive) {
-							$('#CaseMainCmd').click();
+				console.log(defualtValue);
+				if (defualtValue.studyTags) {
+		      rqParams = {data: caseData, hospitalId: hospitalId, userId: userId, patientId: patientId, urgenttypeId: urgenttypeId, cliamerightId: cliamerightId, option: newCaseData.option, studyTags: defualtValue.studyTags};
+					console.log(rqParams);
+
+		      let caseRes = await common.doCallApi('/api/cases/add', rqParams);
+		      if (caseRes.status.code === 200) {
+						console.log('caseActions=>', caseRes.actions);
+		        $.notify("บันทึกเคสใหม่เข้าสู่ระบบเรียบร้อยแล้ว", "success");
+						if (userdata.usertypeId == 2) {
+							let isActive = $('#CaseMainCmd').hasClass('NavActive');
+							if (!isActive) {
+								let hrPatientFiles = caseData.Case_PatientHRLink;
+								doTransferDicomZip(dicomZipFileName, hrPatientFiles, defualtValue);
+								$('#CaseMainCmd').click();
+							}
+							$('#NewStatusSubCmd').click(); // <- Tech Page
+						} else if (userdata.usertypeId == 5) {
+							$('#HomeMainCmd').click(); // <- Refer Page
 						}
-						$('#NewStatusSubCmd').click(); // <- Tech Page
-					} else if (userdata.usertypeId == 5) {
-						$('#HomeMainCmd').click(); // <- Refer Page
-					}
-	      } else {
-	        $.notify("เกิดความผิดพลาด ไม่สามารถบันทึกเคสใหม่เข้าสู่ระบบได้ในขณะนี้", "error");
-	      }
-
+		      } else {
+		        $.notify("เกิดความผิดพลาด ไม่สามารถบันทึกเคสใหม่เข้าสู่ระบบได้ในขณะนี้", "error");
+		      }
+				} else {
+					$.notify("เกิดความผิดพลาด ไม่สามารถสร้างจ้อมูล Dicom เพื่อใช้งานได้", "error");
+				}
 		    $('body').loading('stop');
 	    } catch(e) {
 	      console.log('Unexpected error occurred =>', e);
@@ -21793,24 +21827,14 @@ module.exports = function ( jq ) {
 		}
 	}
 
-  function doPrepareTransferDicomZip(caseData, patientData, defualtValue){
+  function doTransferDicomZip(dicomZipFileName, hrPatientFiles, defualtValue){
     return new Promise(async function(resolve, reject) {
-
-      let currentTime = new Date().toTimeString().replace(/.*(\d{2}:\d{2}:\d{2}).*/, "$1");
-      currentTime = currentTime.split(':').join('');
-      let dicomZipFileName = fmtStr('%s_%s-%s-%s-%s.zip', patientData.Patient_NameEN, patientData.Patient_LastNameEN, defualtValue.studyTags.MainDicomTags.StudyDate, defualtValue.studyTags.MainDicomTags.StudyTime, currentTime);
-
       let transerDicomUrl = '/api/orthanc/transfer/dicom';
-      let transferParams = {DicomZipFileName: dicomZipFileName, StudyTags: defualtValue.studyTags, HrPatientFiles: caseData.Case_PatientHRLink};
+      let transferParams = {DicomZipFileName: dicomZipFileName, StudyTags: defualtValue.studyTags, HrPatientFiles: hrPatientFiles};
 			console.log(transferParams);
+			resolve();
       let transerDicomRes = await common.doCallLocalApi(transerDicomUrl, transferParams);
 			console.log(transerDicomRes);
-			/* UDATE ZIP FILENEME ใน CASE */
-			let updateZipFilenameParams = {StudyID: defualtValue.studyTags.ID, ArchiveFileName: dicomZipFileName};
-			let updateZipFilenameUtl = '/api/cases/reset/dicom/zipfilename';
-			let updateZipFilenameRes = await common.doCallApi(updateZipFilenameUtl, updateZipFilenameParams);
-			console.log(updateZipFilenameRes);
-      resolve();
     });
   }
 
@@ -21875,7 +21899,7 @@ module.exports = function ( jq ) {
   }
 }
 
-},{"../../../case/mod/commonlib.js":5,"../../../case/mod/createnewrefferal.js":8,"../../../case/mod/utilmod.js":18}],25:[function(require,module,exports){
+},{"../../../case/mod/commonlib.js":5,"../../../case/mod/createnewrefferal.js":8,"../../../case/mod/utilmod.js":18,"./submainlib.js":26}],25:[function(require,module,exports){
 /*dicom.js*/
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -21986,6 +22010,17 @@ module.exports = function ( jq ) {
 
   const doShowDicomResult = function(dj, startRef){
 		return new Promise(async function(resolve, reject) {
+			/* sort dj by studydatetime */
+			await dj.sort((a,b) => {
+				let av = util.getDatetimeValue(a.MainDicomTags.StudyDate, a.MainDicomTags.StudyTime);
+				let bv = util.getDatetimeValue(b.MainDicomTags.StudyDate, b.MainDicomTags.StudyTime);
+				if (av && bv) {
+					return bv - av;
+				} else {
+					return 0;
+				}
+			});
+			//console.log(dj);
 			const table = $('<div style="display: table; width: 100%; border-collapse: collapse;"></div>');
 			const tableHeader = doCreateDicomHeaderRow();
 			$(tableHeader).appendTo($(table));
@@ -22447,6 +22482,68 @@ module.exports = function ( jq ) {
 	  $(radAlertBox.cancelCmd).hide();
 	}
 
+	const doCreateCustomNotify = function(){
+	  let msgBox = $('<div></div>');
+	  let titleBox = $("<div id='notify-title' style='background-color: white; color: black; font-weight: bold; text-align: center;'></div>");
+	  $(titleBox).append($('<h4>แจ้งส่งภาพเข้าระบบสำเร็จ</h4>'));
+	  let boyBox = $("<div id='notify-body'></div>");
+	  $(boyBox).append($('<span>คลิกที่ปุ่ม <b>ตกลง</b> เพื่อปิดการแจ้งเตือนนี้</span>'));
+	  let footerBox = $("<div id='notify-footer' style='text-align: center;'></div>");
+	  let updateCmd = $('<input type="button" value="ตกลง" id="UpdateDicomCmd"/>');
+		$(updateCmd).on('click', (evt)=>{
+			$(msgBox).remove()
+		});
+
+	  $(footerBox).append($(updateCmd));
+	  return $(msgBox).append($(titleBox)).append($(boyBox)).append($(footerBox))
+	}
+
+	const onCaseMisstakeNotifyTrigger = function(evt){
+	  let trigerData = evt.detail.data;
+		//console.log(trigerData);
+	  let msg = trigerData.msg;
+	  let from = trigerData.from;
+	  let patientFullName = msg.caseData.patientFullName;
+	  let patientHN = msg.caseData.patientHN;
+	  //let caseScanParts = msg.caseData.caseScanParts;
+		let scanpartValues = Object.values(msg.caseData.caseScanParts);
+		let caseScanParts = scanpartValues.slice(0, -1);
+		//console.log(caseScanParts);
+	  let caseScanPartsText = '';
+	  caseScanParts.forEach((item, i) => {
+	    if (i != (caseScanParts.length - 1)) {
+	      caseScanPartsText  += item.Name + ' \ ';
+	    } else {
+	      caseScanPartsText  += item.Name;
+	    }
+	  });
+
+	  let radAlertMsg = $('<div></div>');
+	  let notifyFromromBox = $('<div></div>');
+	  $(notifyFromromBox).append($('<p><b>ผ้ป่วย ชื่อ</b> ' + patientFullName + '</p>').css({'text-align': 'left', 'line-height': '14px'}));
+	  $(notifyFromromBox).append($('<p><b>HN</b> ' + patientHN + '</p>').css({'text-align': 'left', 'line-height': '14px'}));
+	  $(notifyFromromBox).append($('<p><b>Scan Part</b> ' + caseScanPartsText + '</p>').css({'text-align': 'left', 'line-height': '14px'}));
+	  $(notifyFromromBox).append($('<p><b>ผู้แจ้ง</b> ' + from.userfullname + '</p>').css({'text-align': 'left', 'line-height': '14px'}));
+	  $(notifyFromromBox).append($('<p><b>สาเหตุเคสผิดพลาด</b> ' + msg.cause + '</p>').css({'text-align': 'left', 'line-height': '14px'}));
+	  $(notifyFromromBox).append($('<p><b>ข้อความแจ้งเพิ่มเติม</b> ' + msg.other + '</p>').css({'text-align': 'left', 'line-height': '14px'}));
+	  $(radAlertMsg).append($(notifyFromromBox));
+
+	  const radalertoption = {
+	    title: 'ข้อความแจ้งเตือนเคสผิดพลาด',
+	    msg: $(radAlertMsg),
+	    width: '420px',
+	    onOk: function(evt) {
+	      radAlertBox.closeAlert();
+	    }
+	  }
+	  let radAlertBox = $('body').radalert(radalertoption);
+	  $(radAlertBox.cancelCmd).hide();
+	}
+
+	const onNewDicomTransferTrigger = function(evt) {
+		let msgBox = doCreateCustomNotify();
+		$.notify($(msgBox).html(), {position: 'top right', autoHideDelay: 20000, clickToHide: true, style: 'myshopman', className: 'base'});
+	}
 
 	return {
     showScanpartAux,
@@ -22455,6 +22552,9 @@ module.exports = function ( jq ) {
     doTriggerDicomFilterForm,
 		doCreateRegisterVoIP,
 		doNotAllowAccessPage,
+		doCreateCustomNotify,
+		onCaseMisstakeNotifyTrigger,
+		onNewDicomTransferTrigger
   }
 }
 
