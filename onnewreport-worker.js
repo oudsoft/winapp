@@ -94,7 +94,7 @@ const doStoreDicomFile = function(dicomFile, orthancUrl, user, pass){
     };
 
     requester(postOptions, (perr, pres, pbody)=>{
-      log.info('pbody=> ' + pbody);
+      log.info('Store DCM to local Orthanc pbody=> ' + JSON.stringify(pbody));
       let instanceID = JSON.parse(pbody).ID;
       let storeDicomUrl = orthancUrl + '/modalities/pacs/store';
       let storeDicomOptions = {
@@ -105,6 +105,9 @@ const doStoreDicomFile = function(dicomFile, orthancUrl, user, pass){
         body: instanceID
       }
       requester(storeDicomOptions, (lerr, lres, lbody)=>{
+        log.info('Send new Instance from Orthanc to PACS lbody=> ' + JSON.stringify(lbody));
+        log.info('lres=> ' + JSON.stringify(lres));
+        log.info('lerr=> ' + JSON.stringify(lerr));
         resolve(lbody);
       });
     });
@@ -217,21 +220,25 @@ const doEventProcess = function(data){
       */
 
       let seriesIds = data.dicom.seriesIds;
-      let deleteRes = await doDeleteResultSeries(seriesIds);
-
-      let pages = data.dicom.name.dicom.length;
-      for (let i=0; i < (pages); i++) {
-        let dcmName = data.dicom.name.dicom[i];
-        let convertReportRes = await doNewStoreProcess(dcmName);
-        log.info('convertReportRes=>'+ JSON.stringify(convertReportRes));
-        convertReportReses.push(convertReportRes);
+      if (seriesIds) {
+        let deleteRes = await doDeleteResultSeries(seriesIds);
       }
 
+      let pages = data.dicom.name.dicom.length;
+      if (pages > 0) {
+        for (let i=0; i < (pages); i++) {
+          let dcmName = data.dicom.name.dicom[i];
+          let convertReportRes = await doNewStoreProcess(dcmName);
+          log.info('convertReportRes=>'+ JSON.stringify(convertReportRes));
+          convertReportReses.push(convertReportRes);
+        }
+      }
       setTimeout(()=> {
         resolve2(convertReportReses);
       },1800);
     });
     Promise.all([promiseList]).then((ob)=> {
+      log.info('ENVISION_URL => ' + process.env.ENVISION_URL);
       if (process.env.ENVISION_URL) {
         let rqParams = {
           body: data.risParams,
