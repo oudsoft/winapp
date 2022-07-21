@@ -22020,7 +22020,7 @@ module.exports = function ( jq ) {
 					return 0;
 				}
 			});
-			//console.log(dj);
+			console.log(dj);
 			const table = $('<div style="display: table; width: 100%; border-collapse: collapse;"></div>');
 			const tableHeader = doCreateDicomHeaderRow();
 			$(tableHeader).appendTo($(table));

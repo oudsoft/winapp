@@ -50,8 +50,8 @@ var getYesterdayStr = function(){
 
 var getLastMonthStr = function(){
   var d = new Date();
-  d.setDate(d.getMonth() - 1);
-  d.setDate(d.getDate() - 20);
+  //d.setDate(d.getMonth() - 1);
+  d.setDate(d.getDate() - 6);
   var yy, mm, dd, hh;
   yy = d.getFullYear();
   if (d.getMonth() + 1 < 10) {
@@ -396,6 +396,13 @@ module.exports = (app, wsServer, wsClient, monitor) => {
     res.status(200).send({status: {code: 200}, result: {HrPatientFiles: newHrPatientFiles, convert: result1}});
     let result2 = await dicom.doTransferDicomZipFile(studyID, dicomZipFileName);
     log.info("Study Archive Upload from local to cloud done: ", 'https://radconnext.info/' + result2.link);
+
+    let addNewDicomParams = '{\\"hospitalId\\": \\"3\\", \\"resourceType\\": \\"study\\", \\"resourceId\\": \\"' + studyID + '\\", \\"StadyTags\\": \\"' + JSON.stringify(studyTags) + '\\", \\"DicomTags\\": \\"' + JSON.stringify(studyTags) + '\\"}';
+    let command = 'curl -k -H "Content-Type: application/json" -X POST https://radconnext.info/api/dicomtransferlog/add -d "' + addNewDicomParams + '"';
+    log.info('add new study and dicom command=> ' + command);
+    let stdout = await util.runcommand(command);
+    log.info('stdout=> ' + stdout);
+    let resJSON = JSON.parse(stdout);
     let socketTrigger = {type: 'newdicom', dicom: studyTags};
     let result = await webSocketServer.sendNotify(socketTrigger);
   });
