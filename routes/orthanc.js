@@ -51,7 +51,7 @@ var getYesterdayStr = function(){
 var getLastMonthStr = function(){
   var d = new Date();
   //d.setDate(d.getMonth() - 1);
-  d.setDate(d.getDate() - 6);
+  d.setDate(d.getDate() - process.env.LASTDAYNUMBER);
   var yy, mm, dd, hh;
   yy = d.getFullYear();
   if (d.getMonth() + 1 < 10) {
