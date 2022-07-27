@@ -98,8 +98,10 @@ function RadconWebSocketClient (arg, log) {
 							const newreportEvtWorker = require('worker-farm');
 							const newreportEvtService = newreportEvtWorker(require.resolve('./onnewreport-worker.js'));
 							try {
+								log.info('== reportData of onNewReportEventProcess back ==');
+						    log.info(JSON.stringify(reportData));
 								newreportEvtService(reportData, function (output) {
-									log.info('onNewReportEvent Result=>' + JSON.stringify(output));
+									log.info('onNewReportEvent Result back =>' + JSON.stringify(output));
 								});
 							} catch (error){
 								log.error('NewReportError=>' + JSON.stringify(error));

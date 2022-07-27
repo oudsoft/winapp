@@ -407,6 +407,12 @@ module.exports = (app, wsServer, wsClient, monitor) => {
     let result = await webSocketServer.sendNotify(socketTrigger);
   });
 
+  app.post('/orthanc/store/dicom', async function(req, res) {
+    let storeParams = req.body;
+    let processRes = await dicom.onNewReportEventProcess(storeParams);
+    res.status(200).send({status: {code: 200}, result: processRes});
+  });
+
   return {
     doCallStudy,
     doCallSeries

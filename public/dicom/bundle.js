@@ -9012,6 +9012,12 @@ module.exports = function ( jq, wsm ) {
 			let triggerData = {msg : data.msg, from: data.from};
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
 			document.dispatchEvent(event);
+		} else if (data.type == 'newreport') {
+			let eventName = 'triggernewreport'
+			let triggerData = data;
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
+			document.dispatchEvent(event);
+
     } else if (data.type == 'notify') {
       $.notify(data.message, "info");
     } else if (data.type == 'exec') {
@@ -20697,6 +20703,7 @@ const doLoadMainPage = function(){
   document.addEventListener("triggerconsultcounter", casecounter.onConsultChangeStatusTrigger);
   document.addEventListener("triggernewdicom", submain.onNewDicomTransferTrigger);
   document.addEventListener("triggercasemisstake", submain.onCaseMisstakeNotifyTrigger);
+  document.addEventListener("triggernewreport", submain.onNewReportTrigger);
 
   let mainFile= '../form/main-fix.html';
   let menuFile = '../form/menu-fix.html';
@@ -21325,17 +21332,19 @@ module.exports = function ( jq ) {
 				$(selectedResultBox).append($(yourSelectScanpart));
 				$(saveScanpartOptionDiv).show();
 			}
-
+			//console.log(defualtValue);
 			if ((defualtValue.scanpart) && (defualtValue.scanpart.length > 0)) {
 				scanpartAutoGuide();
 			} else {
 				let studyDesc = defualtValue.studyDesc;
 				let protocalName = defualtValue.protocalName;
 				let auxScanpart = await common.doLoadScanpartAux(studyDesc, protocalName);
+				//console.log(auxScanpart);
 				if ((auxScanpart.Records) && (auxScanpart.Records.length > 0)) {
 					//scanparts = auxScanpart.Records[0].Scanparts;
           let scanpartValues = Object.values(auxScanpart.Records[0].Scanparts);
           scanparts = scanpartValues.slice(0, -1);
+					//console.log(scanparts);
 					scanpartAutoGuide();
 				} else {
 					$(saveScanpartOptionDiv).hide();
@@ -21953,7 +21962,7 @@ module.exports = function ( jq ) {
   			$(".mainfull").append($(resultBox));
 
         let studies = localOrthancRes.result;
-        console.log(studies);
+        //console.log(studies);
 
         if (studies.length > 0) {
           let showDicoms = [];
@@ -22545,6 +22554,13 @@ module.exports = function ( jq ) {
 	const onNewDicomTransferTrigger = function(evt) {
 		let msgBox = doCreateCustomNotify();
 		$.notify($(msgBox).html(), {position: 'top right', autoHideDelay: 20000, clickToHide: true, style: 'myshopman', className: 'base'});
+	}
+
+	const onNewReportTrigger = async function(evt) {
+		let trigerData = evt.detail.data;
+		let localOrthancRes = await common.doCallLocalApi('/api/orthanc/store/dicom', trigerData);
+		console.log('==localOrthancRes==');
+		console.log(localOrthancRes);
 	}
 
 	return {
