@@ -76,6 +76,7 @@ const doDeleteResultSeries = function(seriesIds){
 
 const doStoreDicomFile = function(dicomFile, orthancUrl, user, pass){
   return new Promise(async function(resolve, reject) {
+    log.info('Store DICOM from local DCM file => ' + dicomFile);
     let postToUrl = orthancUrl + '/instances'
     let stream = fs.createReadStream(dicomFile);
     let headers = {
@@ -94,7 +95,15 @@ const doStoreDicomFile = function(dicomFile, orthancUrl, user, pass){
     };
 
     requester(postOptions, (perr, pres, pbody)=>{
-      log.info('Store DCM to local Orthanc pbody=> ' + JSON.stringify(pbody));
+      if (pbody) {
+        log.info('Store DCM to local Orthanc pbody=> ' + JSON.stringify(pbody));
+      }
+      if (pres) {
+        log.info('Store DCM to local Orthanc pres=> ' + JSON.stringify(pres));
+      }
+      if (perr) {
+        log.info('Store DCM to local Orthanc perr=> ' + JSON.stringify(perr));
+      }
       let instanceID = JSON.parse(pbody).ID;
       let storeDicomUrl = orthancUrl + '/modalities/pacs/store';
       let storeDicomOptions = {

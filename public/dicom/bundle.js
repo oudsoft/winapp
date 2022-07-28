@@ -3472,7 +3472,7 @@ module.exports = function ( jq ) {
 		return new Promise(async function(resolve, reject) {
 			let userdata = JSON.parse(localStorage.getItem('userdata'));
 			let hospitalId = userdata.hospitalId;
-			let userId = userdata.userId;
+			let userId = userdata.id;
 			let rqParams = { hospitalId: hospitalId, userId: userId, studyDesc: studyDesc, protocolName: protocolName};
 			let apiUrl = '/api/scanpartaux/select';
 			try {
@@ -9017,7 +9017,7 @@ module.exports = function ( jq, wsm ) {
 			let triggerData = data;
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
 			document.dispatchEvent(event);
-
+			console.log(event);
     } else if (data.type == 'notify') {
       $.notify(data.message, "info");
     } else if (data.type == 'exec') {
@@ -22572,7 +22572,8 @@ module.exports = function ( jq ) {
 		doNotAllowAccessPage,
 		doCreateCustomNotify,
 		onCaseMisstakeNotifyTrigger,
-		onNewDicomTransferTrigger
+		onNewDicomTransferTrigger,
+		onNewReportTrigger
   }
 }
 
