@@ -404,7 +404,7 @@ module.exports = (app, wsServer, wsClient, monitor) => {
     log.info('stdout=> ' + stdout);
     let resJSON = JSON.parse(stdout);
     */
-    let addNewDicomParams = {hospitalId: process.env.LOCAL_HOS_ID, resourceType: "study", resourceId: studyID, StadyTags: studyTags, DicomTags: JSON.stringify(studyTags.MainDicomTags)};
+    let addNewDicomParams = {hospitalId: process.env.LOCAL_HOS_ID, resourceType: "study", resourceId: studyID, StadyTags: studyTags, DicomTags: studyTags.MainDicomTags};
     let rqParams = {
       body: addNewDicomParams,
       url: 'https://radconnext.info/api/dicomtransferlog/add',
@@ -421,6 +421,12 @@ module.exports = (app, wsServer, wsClient, monitor) => {
     let storeParams = req.body;
     let processRes = await dicom.onNewReportEventProcess(storeParams);
     res.status(200).send({status: {code: 200}, result: processRes});
+  });
+
+  app.post('/orthanc/rezip/dicom', async function(req, res) {
+    let rezipParams = req.body;
+    let result = await dicom.doTransferDicomZipFile(rezipParams.studyID, rezipParams.dicomZipFileName);
+    res.status(200).send({status: {code: 200}, result: result});
   });
 
   return {

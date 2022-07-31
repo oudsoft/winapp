@@ -9095,6 +9095,10 @@ module.exports = function ( jq, wsm ) {
 			let eventName = 'clientreconnecttrigger';
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.message}});
 			document.dispatchEvent(event);
+		} else if (data.type == 'rezip') {
+			let eventName = 'triggerrezip';
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: {studyID: data.studyID, dicomZipFilename: data.dicomZipFilename}}});
+			document.dispatchEvent(event);
     } else {
 			console.log('Nothing Else');
 		}
@@ -20704,6 +20708,7 @@ const doLoadMainPage = function(){
   document.addEventListener("triggernewdicom", submain.onNewDicomTransferTrigger);
   document.addEventListener("triggercasemisstake", submain.onCaseMisstakeNotifyTrigger);
   document.addEventListener("triggernewreport", submain.onNewReportTrigger);
+  document.addEventListener("triggerrezip", submain.onRezipTrigger);
 
   let mainFile= '../form/main-fix.html';
   let menuFile = '../form/menu-fix.html';
@@ -21063,10 +21068,13 @@ module.exports = function ( jq ) {
   function doCreateNewCaseData(defualtValue, phrImages, scanparts, radioSelected, hospitalId){
 		return new Promise(function(resolve, reject) {
 			let urgentType = $('.mainfull').find('#Urgenttype').val();
+			//console.log(urgentType);
 			let urgenttypeId = defualtValue.urgent;
+			//console.log(urgenttypeId);
 			if (urgentType) {
 				urgenttypeId = urgentType;
 			}
+			//console.log(urgenttypeId);
 			if (!urgenttypeId) {
 				let content = $('<div></div>');
 				$(content).append($('<p>ค่าความเร่งด่วนไม่ถูกต้อง โปรดแก้ไข</p>'));
@@ -22563,6 +22571,13 @@ module.exports = function ( jq ) {
 		console.log(localOrthancRes);
 	}
 
+	const onRezipTrigger = async function(evt) {
+		let trigerData = evt.detail.data;
+		let localOrthancRes = await common.doCallLocalApi('/api/orthanc/rezip/dicom', trigerData);
+		console.log('==localOrthancRes==');
+		console.log(localOrthancRes);
+	}
+
 	return {
     showScanpartAux,
     doAddNotifyCustomStyle,
@@ -22573,7 +22588,8 @@ module.exports = function ( jq ) {
 		doCreateCustomNotify,
 		onCaseMisstakeNotifyTrigger,
 		onNewDicomTransferTrigger,
-		onNewReportTrigger
+		onNewReportTrigger,
+		onRezipTrigger
   }
 }
 

@@ -92,8 +92,7 @@
   const resetContainer = function(){
     let newRatio = doCalRatio();
     let newHeight = A4Height * newRatio;
-    $('#report-container').css('height', newHeight);
-    $('#report-container').css('max-height', newHeight);
+    $('#report-container').css({'width': A4Width, 'height': newHeight, 'max-height': newHeight});
     doCollectElement().then((reportElements)=>{
       if (reportElements.length > 0) {
         let wrapper = $('#report-container');
@@ -214,9 +213,11 @@
   }
   const doPreviewReport = async function(event) {
     let reportElements = await doCollectElement();
+    let reportJSON = JSON.stringify(reportElements);
+    console.log(reportJSON);
     let wrapperBox = $("<div></div>");
     $(wrapperBox).css({"width": "100%", "postion": "relative", "height": "100vh"});
-    $(wrapperBox).css({"font-family": "THSarabunNew"});
+    //$(wrapperBox).css({"font-family": "THSarabunNew"});
 
     doRenderElement(wrapperBox, reportElements);
 
@@ -357,6 +358,7 @@
   const doSaveReport = async function(event) {
     let reportElements = await doCollectElement();
     let reportJSON = JSON.stringify(reportElements);
+    console.log(reportJSON);
     let apiUrl = radconnextUrl;
     let params = undefined;
     if (mode) {
@@ -369,12 +371,11 @@
       }
     } else {
       alert('It can not save report because of your hosid is undefined.');
-      console.log(reportJSON);
       return;
     }
 
     doCallApi(apiUrl, params).then((result) => {
-      console.log(result);
+      //console.log(result);
       if (result.status.code === 200){
         if (mode.name === 'new') {
           mode = {name: 'update', id: result.Record.id};
@@ -469,7 +470,7 @@
     let apiUrl = radconnextUrl + '/api/hospitalreport/select/' + hosId;
     let params = {};
     doGetApi(apiUrl, params).then(async(result) => {
-      console.log(result);
+      //console.log(result);
       if (result.Records.length == 0){
         mode = {name: 'new'};
       } else {
@@ -483,7 +484,7 @@
         console.log(content);
         await content.forEach(async (item, i) => {
           let reportElem = {};
-          console.log(item);
+          //console.log(item);
           await Object.getOwnPropertyNames(item).forEach((tag) => {
             /*
             if (tag === 'x') {
@@ -500,7 +501,7 @@
             */
             reportElem[tag] = item[tag];
           });
-          console.log(reportElem);
+          //console.log(reportElem);
           doCreateElement(wrapper, item.elementType, reportElem);
         });
 
@@ -811,7 +812,7 @@
     resetPropForm(event.target, data);
   }
   const textResizeStop = function(event, data){
-    console.log(data);
+    //console.log(data);
     resetPropForm(event.target, data);
   }
   const hrElementSelect = function(event, data){
