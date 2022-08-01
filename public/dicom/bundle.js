@@ -22573,6 +22573,7 @@ module.exports = function ( jq ) {
 
 	const onRezipTrigger = async function(evt) {
 		let trigerData = evt.detail.data;
+		console.log(trigerData);
 		let localOrthancRes = await common.doCallLocalApi('/api/orthanc/rezip/dicom', trigerData);
 		console.log('==localOrthancRes==');
 		console.log(localOrthancRes);

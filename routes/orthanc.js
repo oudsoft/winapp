@@ -425,7 +425,12 @@ module.exports = (app, wsServer, wsClient, monitor) => {
 
   app.post('/orthanc/rezip/dicom', async function(req, res) {
     let rezipParams = req.body;
-    let result = await dicom.doTransferDicomZipFile(rezipParams.studyID, rezipParams.dicomZipFileName);
+    let studyID = req.body.studyID;
+    log.info('studyID=>'+ studyID);
+    let dicomZipFilename = req.body.dicomZipFilename;
+    log.info('dicomZipFilename=>'+ dicomZipFilename);
+    let result = await dicom.doTransferDicomZipFile(studyID, dicomZipFilename);
+    log.info('result=>'+ JSON.stringify(result));
     res.status(200).send({status: {code: 200}, result: result});
   });
 
