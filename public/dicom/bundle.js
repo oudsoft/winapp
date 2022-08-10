@@ -20618,7 +20618,7 @@ $( document ).ready(function() {
           if (userdata.usertypeId == 2) {
 			       doLoadMainPage();
              wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
-             submain.doCreateRegisterVoIP(userdata);
+             //submain.doCreateRegisterVoIP(userdata);
            } else {
              submain.doNotAllowAccessPage();
            }
@@ -22569,6 +22569,7 @@ module.exports = function ( jq ) {
 		let localOrthancRes = await common.doCallLocalApi('/api/orthanc/store/dicom', trigerData);
 		console.log('==localOrthancRes==');
 		console.log(localOrthancRes);
+		$('body').loading('stop');
 	}
 
 	const onRezipTrigger = async function(evt) {
@@ -22577,6 +22578,7 @@ module.exports = function ( jq ) {
 		let localOrthancRes = await common.doCallLocalApi('/api/orthanc/rezip/dicom', trigerData);
 		console.log('==localOrthancRes==');
 		console.log(localOrthancRes);
+		$('body').loading('stop');
 	}
 
 	return {

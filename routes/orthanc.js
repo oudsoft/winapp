@@ -394,27 +394,23 @@ module.exports = (app, wsServer, wsClient, monitor) => {
     let newHrPatientFiles = await dicom.doDownloadHrPatientFiles(hrPatientFiles);
     let result1 = await dicom.doConvertJPG2DCM(newHrPatientFiles, studyTags);
     res.status(200).send({status: {code: 200}, result: {HrPatientFiles: newHrPatientFiles, convert: result1}});
-    let result2 = await dicom.doTransferDicomZipFile(studyID, dicomZipFileName);
-    log.info("Study Archive Upload from local to cloud done: ", 'https://radconnext.info/' + result2.link);
+    setTimeout(()=>{
+      //let result2 = await dicom.doTransferDicomZipFile(studyID, dicomZipFileName);
+      let result2 = await dicom.doFetchDicomZipFile(studyID, dicomZipFilename);
+      log.info("Study Archive Upload from local to cloud done: ", 'https://radconnext.info/' + result2.link);
 
-    /*
-    let addNewDicomParams = '{\\"hospitalId\\": \\"3\\", \\"resourceType\\": \\"study\\", \\"resourceId\\": \\"' + studyID + '\\", \\"StadyTags\\": \\"' + JSON.stringify(studyTags) + '\\", \\"DicomTags\\": \\"' + JSON.stringify(studyTags) + '\\"}';
-    log.info('add new study and dicom command=> ' + command);
-    let stdout = await util.runcommand(command);
-    log.info('stdout=> ' + stdout);
-    let resJSON = JSON.parse(stdout);
-    */
-    let addNewDicomParams = {hospitalId: process.env.LOCAL_HOS_ID, resourceType: "study", resourceId: studyID, StadyTags: studyTags, DicomTags: studyTags.MainDicomTags};
-    let rqParams = {
-      body: addNewDicomParams,
-      url: 'https://radconnext.info/api/dicomtransferlog/add',
-      method: 'post'
-    }
-    util.proxyRequest(rqParams).then(async(proxyRes)=>{
-      log.info('proxyRes=>'+ JSON.stringify(proxyRes));
-      let socketTrigger = {type: 'newdicom', dicom: studyTags};
-      let result = await webSocketServer.sendNotify(socketTrigger);
-    });
+      let addNewDicomParams = {hospitalId: process.env.LOCAL_HOS_ID, resourceType: "study", resourceId: studyID, StadyTags: studyTags, DicomTags: studyTags.MainDicomTags};
+      let rqParams = {
+        body: addNewDicomParams,
+        url: 'https://radconnext.info/api/dicomtransferlog/add',
+        method: 'post'
+      }
+      util.proxyRequest(rqParams).then(async(proxyRes)=>{
+        log.info('proxyRes=>'+ JSON.stringify(proxyRes));
+        let socketTrigger = {type: 'newdicom', dicom: studyTags};
+        let result = await webSocketServer.sendNotify(socketTrigger);
+      });
+    }, 1100)
   });
 
   app.post('/orthanc/store/dicom', async function(req, res) {
@@ -429,9 +425,11 @@ module.exports = (app, wsServer, wsClient, monitor) => {
     log.info('studyID=>'+ studyID);
     let dicomZipFilename = req.body.dicomZipFilename;
     log.info('dicomZipFilename=>'+ dicomZipFilename);
-    let result = await dicom.doTransferDicomZipFile(studyID, dicomZipFilename);
-    log.info('result=>'+ JSON.stringify(result));
-    res.status(200).send({status: {code: 200}, result: result});
+    res.status(200).send({status: {code: 200}, result: 'Start Fecth to cloud.'});
+    //let result = await dicom.doTransferDicomZipFile(studyID, dicomZipFilename);
+    let result = await dicom.doFetchDicomZipFile(studyID, dicomZipFilename);
+    log.info('FetchDicomZipFile Result=>'+ JSON.stringify(result));
+    //res.status(200).send({status: {code: 200}, result: result});
   });
 
   return {
