@@ -1283,7 +1283,8 @@ module.exports = function ( jq ) {
 	const apiconnector = require('./apiconnect.js')($);
 	const util = require('./utilmod.js')($);
 	const common = require('./commonlib.js')($);
-	const newcase = require('./createnewcase.js')($);
+	//const newcase = require('./createnewcase.js')($);
+	const casecreator = require('../../local/dicom/mod//case-creator.js')($);
 	const casecounter = require('./casecounter.js')($);
 
 	const defualtPacsLimit = '30';
@@ -1760,9 +1761,11 @@ module.exports = function ( jq ) {
 						$(caseStatusCol).append($(clockCountdownDiv));
 					} else {
 						//Warning Case Please Cancel Case by Cancel Cmd.
+						/*
 						let taskWarningBox = $('<div style="position: relative; width: 100%; text-align: center; color: red;"></div>');
 						$(taskWarningBox).append($('<span>กรุณาส่งใหม่</span>'));
 						$(caseStatusCol).append($(taskWarningBox));
+						*/
 					}
 				}
 				let commandCol = $('<td align="center"></td>');
@@ -1970,12 +1973,15 @@ module.exports = function ( jq ) {
 			defualtValue.headerCreateCase = 'แก้ไขเคส';
 			defualtValue.createdAt = response.case.createdAt;
 
-			let orthancRes = await common.doGetOrthancStudyDicom(defualtValue.studyID);
-			let seriesList = orthancRes.Series;
-			let patientName = orthancRes.PatientMainDicomTags.PatientName;
+			//let orthancRes = await common.doGetOrthancStudyDicom(defualtValue.studyID);
+			let studyTags = await common.doGetSeriesList(defualtValue.studyID)
+			let seriesList = studyTags.Series;
+			let patientName = studyTags.PatientMainDicomTags.PatientName;
 			let allSeries = seriesList.length;
-			let allImageInstances = await newcase.doCallCountInstanceImage(seriesList, patientName);
-			newcase.doCreateNewCaseFirstStep(defualtValue, allSeries, allImageInstances);
+			//let allImageInstances = await newcase.doCallCountInstanceImage(seriesList, patientName);
+			let allImageInstances = await common.doCountImageLocalDicom(defualtValue.studyID);
+			//newcase.doCreateNewCaseFirstStep(defualtValue, allSeries, allImageInstances);
+			casecreator.doCreateNewCaseFirstStep(defualtValue, allSeries, allImageInstances);
 			/*
   		//doOpenEditCase(defualtValue);
 			*/
@@ -2346,7 +2352,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../main.js":1,"./apiconnect.js":2,"./casecounter.js":4,"./commonlib.js":5,"./createnewcase.js":7,"./utilmod.js":18}],4:[function(require,module,exports){
+},{"../../local/dicom/mod//case-creator.js":24,"../main.js":1,"./apiconnect.js":2,"./casecounter.js":4,"./commonlib.js":5,"./utilmod.js":18}],4:[function(require,module,exports){
 /* casecounter.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -21849,7 +21855,7 @@ module.exports = function ( jq ) {
   function doTransferDicomZip(dicomZipFileName, hrPatientFiles, defualtValue){
     return new Promise(async function(resolve, reject) {
       let transerDicomUrl = '/api/orthanc/transfer/dicom';
-      let transferParams = {DicomZipFileName: dicomZipFileName, StudyTags: defualtValue.studyTags, HrPatientFiles: hrPatientFiles};
+      let transferParams = {DicomZipFileName: dicomZipFileName, StudyTags: defualtValue.studyTags, HrPatientFiles: hrPatientFiles, oldHrPatientFiles: defualtValue.pn_history};
 			console.log(transferParams);
 			resolve();
       let transerDicomRes = await common.doCallLocalApi(transerDicomUrl, transferParams);
@@ -21861,7 +21867,7 @@ module.exports = function ( jq ) {
 		const userdata = JSON.parse(localStorage.getItem('userdata'));
 		const hospitalId = userdata.hospitalId;
 		const userId = userdata.id
-		const goToNextPage = function(statusId){
+		const goToNextPage = function(statusId, dicomZipFileName, hrPatientFiles, defualtValue){
 			if (statusId == 1) {
 				$('#NewStatusSubCmd').click();
 			} else if ((statusId == 2) || (statusId == 8)) {
@@ -21871,7 +21877,9 @@ module.exports = function ( jq ) {
 			} else if ((statusId == 3)||(statusId == 4)||(statusId == 7)) {
 				$('#NegativeStatusSubCmd').click();
 			}
+			doTransferDicomZip(dicomZipFileName, hrPatientFiles, defualtValue);
 		}
+
 		let updateCaseData = await doCreateNewCaseData(defualtValue, phrImages, scanparts, radioSelected, hospitalId);
 
 		if (updateCaseData) {
@@ -21883,7 +21891,12 @@ module.exports = function ( jq ) {
 			const urgenttypeId = updateCaseData.urgenttypeId;
 			const cliamerightId = updateCaseData.patientRights
 			let casedata = common.doPrepareCaseParams(updateCaseData);
-			//rqParams = {data: casedata, hospitalId: hospitalId, userId: userId, patientId: patientId, urgenttypeId: urgenttypeId, cliamerightId: cliamerightId};
+			let currentTime = new Date().toTimeString().replace(/.*(\d{2}:\d{2}:\d{2}).*/, "$1");
+			currentTime = currentTime.split(':').join('');
+			let dicomZipFileName = fmtStr('%s_%s-%s-%s-%s.zip', patientData.Patient_NameEN, patientData.Patient_LastNameEN, defualtValue.studyTags.MainDicomTags.StudyDate, defualtValue.studyTags.MainDicomTags.StudyTime, currentTime);
+
+			casedata.Case_DicomZipFilename = dicomZipFileName;
+
 			rqParams = {id: defualtValue.caseId, data: casedata, urgenttypeId: urgenttypeId, cliamerightId: cliamerightId};
 			let caseRes = await common.doCallApi('/api/cases/update', rqParams);
 			if (caseRes.status.code === 200) {
@@ -21897,11 +21910,13 @@ module.exports = function ( jq ) {
 					common.doUpdateCaseStatus(defualtValue.caseId, caseNewStatus, changeRaioLog).then((caseChangeStatusRes) => {
 						console.log(caseChangeStatusRes);
 						$.notify("บันทึกการแก้ไขเคสและปรับสถานะเคสเป็นเคสใหม่เรียบร้อยแล้ว", "success");
-						goToNextPage(defualtValue.status);
+						let hrPatientFiles = casedata.Case_PatientHRLink;
+						goToNextPage(defualtValue.status, dicomZipFileName, hrPatientFiles, defualtValue);
 					});
 				} else {
 					$.notify("บันทึกการแก้ไขเคสเรียบร้อยแล้ว", "success");
-					goToNextPage(defualtValue.status);
+					let hrPatientFiles = casedata.Case_PatientHRLink;
+					goToNextPage(defualtValue.status, dicomZipFileName, hrPatientFiles, defualtValue);
 				}
 			} else {
 				$.notify("เกิดความผิดพลาด ไม่สามารถบันทึกการแก้ไขเคสได้ในขณะนี้", "error");
@@ -22559,7 +22574,13 @@ module.exports = function ( jq ) {
 	  $(radAlertBox.cancelCmd).hide();
 	}
 
-	const onNewDicomTransferTrigger = function(evt) {
+	const onNewDicomTransferTrigger = async function(evt) {
+		let trigerData = evt.detail.data;
+		let studyID = trigerData.dicom.ID;
+		let localOrthancRes = await common.doCallApi('/api/cases/newcase/trigger', {studyID: studyID});
+		console.log('==onNewDicomTransferTrigger==');
+		console.log(localOrthancRes);
+		$('body').loading('stop');
 		let msgBox = doCreateCustomNotify();
 		$.notify($(msgBox).html(), {position: 'top right', autoHideDelay: 20000, clickToHide: true, style: 'myshopman', className: 'base'});
 	}
@@ -22567,7 +22588,7 @@ module.exports = function ( jq ) {
 	const onNewReportTrigger = async function(evt) {
 		let trigerData = evt.detail.data;
 		let localOrthancRes = await common.doCallLocalApi('/api/orthanc/store/dicom', trigerData);
-		console.log('==localOrthancRes==');
+		console.log('==onNewReportTrigger==');
 		console.log(localOrthancRes);
 		$('body').loading('stop');
 	}
@@ -22576,7 +22597,7 @@ module.exports = function ( jq ) {
 		let trigerData = evt.detail.data;
 		console.log(trigerData);
 		let localOrthancRes = await common.doCallLocalApi('/api/orthanc/rezip/dicom', trigerData);
-		console.log('==localOrthancRes==');
+		console.log('==onRezipTrigger==');
 		console.log(localOrthancRes);
 		$('body').loading('stop');
 	}

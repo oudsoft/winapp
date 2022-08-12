@@ -42,7 +42,8 @@ function doCallUpload(uploadUrl, filepath, uploadname, type="archive") {
 let uploadUrl = 'https://radconnext.info/api/transfer/archive';
 let uploadname = 'archiveupload';
 //let filepath = '/home/drink/Downloads/THONGDAENG_SAECHAN-20220807-194241-213609.zip';
-let filepath = '/home/drink/Downloads/temp/NITTAYA_PHURIANGPHA-20220721-181533-184613.zip';
+//let filepath = '/home/drink/Downloads/temp/NITTAYA_PHURIANGPHA-20220721-181533-184613.zip';
+let filepath = 'D:/radcon/Radconnext-win32-x64/http/public/img/usr/zip/NITTAYA_PHURIANGPHA-20220721-181533-184613.zip';
 doCallUpload(uploadUrl, filepath, uploadname).then((res)=>{
   console.log(JSON.stringify(res));
 });

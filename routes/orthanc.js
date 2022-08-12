@@ -390,26 +390,32 @@ module.exports = (app, wsServer, wsClient, monitor) => {
     let studyTags = req.body.StudyTags;
     let hrPatientFiles = req.body.HrPatientFiles;
     let dicomZipFileName = req.body.DicomZipFileName;
+    let oldHrPatientFiles = req.body.oldHrPatientFiles;
     let studyID = studyTags.ID;
     let newHrPatientFiles = await dicom.doDownloadHrPatientFiles(hrPatientFiles);
-    let result1 = await dicom.doConvertJPG2DCM(newHrPatientFiles, studyTags);
+    let result1 = await dicom.doConvertJPG2DCM(newHrPatientFiles, studyTags, oldHrPatientFiles);
     res.status(200).send({status: {code: 200}, result: {HrPatientFiles: newHrPatientFiles, convert: result1}});
-    setTimeout(()=>{
+    setTimeout(async()=>{
       //let result2 = await dicom.doTransferDicomZipFile(studyID, dicomZipFileName);
-      let result2 = await dicom.doFetchDicomZipFile(studyID, dicomZipFilename);
-      log.info("Study Archive Upload from local to cloud done: ", 'https://radconnext.info/' + result2.link);
+      let result2 = await dicom.doFetchDicomZipFile(studyID, dicomZipFileName);
+      log.info("Study Archive Upload from local to cloud done: " + 'https://radconnext.info/' + result2.link);
 
-      let addNewDicomParams = {hospitalId: process.env.LOCAL_HOS_ID, resourceType: "study", resourceId: studyID, StadyTags: studyTags, DicomTags: studyTags.MainDicomTags};
-      let rqParams = {
-        body: addNewDicomParams,
-        url: 'https://radconnext.info/api/dicomtransferlog/add',
-        method: 'post'
-      }
-      util.proxyRequest(rqParams).then(async(proxyRes)=>{
-        log.info('proxyRes=>'+ JSON.stringify(proxyRes));
+      if (oldHrPatientFiles) {
         let socketTrigger = {type: 'newdicom', dicom: studyTags};
         let result = await webSocketServer.sendNotify(socketTrigger);
-      });
+      } else {
+        let addNewDicomParams = {hospitalId: process.env.LOCAL_HOS_ID, resourceType: "study", resourceId: studyID, StadyTags: studyTags, DicomTags: studyTags.MainDicomTags};
+        let rqParams = {
+          body: addNewDicomParams,
+          url: 'https://radconnext.info/api/dicomtransferlog/add',
+          method: 'post'
+        }
+        util.proxyRequest(rqParams).then(async(proxyRes)=>{
+          log.info('proxyRes=>'+ JSON.stringify(proxyRes));
+          let socketTrigger = {type: 'newdicom', dicom: studyTags};
+          let result = await webSocketServer.sendNotify(socketTrigger);
+        });
+      }
     }, 1100)
   });
 
