@@ -390,7 +390,7 @@ module.exports = (app, wsServer, wsClient, monitor) => {
     let studyTags = req.body.StudyTags;
     let hrPatientFiles = req.body.HrPatientFiles;
     let dicomZipFileName = req.body.DicomZipFileName;
-    let oldHrPatientFiles = req.body.oldHrPatientFiles;
+    let oldHrPatientFiles = req.body.OldHrPatientFiles;
     let studyID = studyTags.ID;
     let newHrPatientFiles = await dicom.doDownloadHrPatientFiles(hrPatientFiles);
     let result1 = await dicom.doConvertJPG2DCM(newHrPatientFiles, studyTags, oldHrPatientFiles);
@@ -401,9 +401,15 @@ module.exports = (app, wsServer, wsClient, monitor) => {
       log.info("Study Archive Upload from local to cloud done: " + 'https://radconnext.info/' + result2.link);
 
       if (oldHrPatientFiles) {
-        let socketTrigger = {type: 'newdicom', dicom: studyTags};
+        let isChangeRadio = req.body.ChangeRadioOption;
+        let caseId = req.body.caseId;
+        let socketTrigger = {type: 'updatedicom', dicom: studyTags, caseId: caseId, isChangeRadio: isChangeRadio};
         let result = await webSocketServer.sendNotify(socketTrigger);
       } else {
+        let socketTrigger = {type: 'newdicom', dicom: studyTags};
+        let result = await webSocketServer.sendNotify(socketTrigger);
+
+        /*
         let addNewDicomParams = {hospitalId: process.env.LOCAL_HOS_ID, resourceType: "study", resourceId: studyID, StadyTags: studyTags, DicomTags: studyTags.MainDicomTags};
         let rqParams = {
           body: addNewDicomParams,
@@ -415,6 +421,7 @@ module.exports = (app, wsServer, wsClient, monitor) => {
           let socketTrigger = {type: 'newdicom', dicom: studyTags};
           let result = await webSocketServer.sendNotify(socketTrigger);
         });
+        */
       }
     }, 1100)
   });
