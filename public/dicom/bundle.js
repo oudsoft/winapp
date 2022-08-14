@@ -8727,7 +8727,7 @@ module.exports = function ( jq ) {
 	  const port = window.location.port;
 	  const paths = window.location.pathname.split('/');
 	  const rootname = paths[1];
-
+		/*
 		let wsProtocol = 'ws://';
 		if (protocol == 'https:') {
 			wsProtocol = 'wss://';
@@ -8737,7 +8737,9 @@ module.exports = function ( jq ) {
 		if (hostname == 'localhost') {
 			wsUrl = 'wss://radconnext.info/' + username + '/' + hospitalId + '?type=' + connecttype;
 		}
+		*/
 
+		let wsUrl = 'wss://radconnext.info/' + username + '/' + hospitalId + '?type=' + connecttype;
 	  wsm = new WebSocket(wsUrl);
 		wsm.onopen = function () {
 			//console.log('Master Websocket is connected to the signaling server')
@@ -8806,6 +8808,16 @@ module.exports = function ( jq ) {
 			wsm.send(JSON.stringify(data.data));
 		} else if (data.type == 'run') {
 			wsm.send(JSON.stringify(data.data));
+		} else if (data.type == 'newdicom') {
+			let eventName = 'triggernewdicom'
+			let triggerData = {dicom : data.dicom};
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
+			document.dispatchEvent(event);
+		} else if (data.type == 'updatedicom') {
+			let eventName = 'triggerupdatedicom'
+			let triggerData = {dicom : data.dicom};
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
+			document.dispatchEvent(event);			
 		}
 	}
 
@@ -9007,16 +9019,6 @@ module.exports = function ( jq, wsm ) {
 				document.dispatchEvent(event);
 			}
 		//} else if (data.type == 'refreshconsult') {
-		} else if (data.type == 'newdicom') {
-			let eventName = 'triggernewdicom'
-			let triggerData = {dicom : data.dicom};
-			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
-			document.dispatchEvent(event);
-		} else if (data.type == 'updatedicom') {
-			let eventName = 'triggerupdatedicom'
-			let triggerData = {dicom : data.dicom};
-			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
-			document.dispatchEvent(event);
 		} else if (data.type == 'casemisstake') {
 			let eventName = 'triggercasemisstake'
 			let triggerData = {msg : data.msg, from: data.from};
@@ -20613,7 +20615,7 @@ const consult = require('../../case/mod/consult.js')($);
 const portal = require('../../case/mod/portal-lib.js')($);
 const cases = require('../../case/mod/case.js')($);
 
-var wsm, sipUA;
+var wsm, wsl, sipUA;
 
 $( document ).ready(function() {
   const initPage = function() {
@@ -20628,6 +20630,7 @@ $( document ).ready(function() {
           if (userdata.usertypeId == 2) {
 			       doLoadMainPage();
              wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
+             wsl = util.doConnectWebsocketLocal(userdata.username);
              //submain.doCreateRegisterVoIP(userdata);
            } else {
              submain.doNotAllowAccessPage();
@@ -22583,23 +22586,27 @@ module.exports = function ( jq ) {
 	}
 
 	const onNewDicomTransferTrigger = async function(evt) {
+		/*
 		let trigerData = evt.detail.data;
 		let studyID = trigerData.dicom.ID;
 		let localOrthancRes = await common.doCallApi('/api/cases/newcase/trigger', {studyID: studyID});
-		console.log('==onNewDicomTransferTrigger==');
 		console.log(localOrthancRes);
+		*/
+		console.log('==onNewDicomTransferTrigger==');
 		$('body').loading('stop');
 		let msgBox = doCreateCustomNotify();
 		$.notify($(msgBox).html(), {position: 'top right', autoHideDelay: 20000, clickToHide: true, style: 'myshopman', className: 'base'});
 	}
 
 	const onUpdateDicomTransferTrigger = async function(evt) {
+		/*
 		let trigerData = evt.detail.data;
 		let isChangeRadio = trigerData.isChangeRadio;
 		let caseId = trigerData.caseId;
 		let localOrthancRes = await common.doCallApi('/api/cases/updatecase/trigger', {studyID: studyID});
-		console.log('==onUpdateDicomTransferTrigger==');
 		console.log(localOrthancRes);
+		*/
+		console.log('==onUpdateDicomTransferTrigger==');
 		$('body').loading('stop');
 		let msgBox = doCreateCustomNotify();
 		$.notify($(msgBox).html(), {position: 'top right', autoHideDelay: 20000, clickToHide: true, style: 'myshopman', className: 'base'});

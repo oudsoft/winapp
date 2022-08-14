@@ -398,22 +398,27 @@ module.exports = (app, wsServer, wsClient, monitor) => {
     setTimeout(async()=>{
       //let result2 = await dicom.doTransferDicomZipFile(studyID, dicomZipFileName);
       let result2 = await dicom.doFetchDicomZipFile(studyID, dicomZipFileName);
-      log.info("Study Archive Upload from local to cloud done: " + 'https://radconnext.info/' + result2.link);
+      log.info("Study Archive Upload from local to cloud done: " + "https://radconnext.info" + result2.link);
 
       if (oldHrPatientFiles) {
         let isChangeRadio = req.body.ChangeRadioOption;
         let caseId = req.body.caseId;
-        let socketTrigger = {type: 'updatedicom', dicom: studyTags, caseId: caseId, isChangeRadio: isChangeRadio};
-        let result = await webSocketServer.sendNotify(socketTrigger);
-      } else {
-        let socketTrigger = {type: 'newdicom', dicom: studyTags};
-        let result = await webSocketServer.sendNotify(socketTrigger);
-
-        /*
-        let addNewDicomParams = {hospitalId: process.env.LOCAL_HOS_ID, resourceType: "study", resourceId: studyID, StadyTags: studyTags, DicomTags: studyTags.MainDicomTags};
+        let triggerRadioParams = {studyID: studyID, caseId: caseId, isChangeRadio: isChangeRadio};
         let rqParams = {
-          body: addNewDicomParams,
-          url: 'https://radconnext.info/api/dicomtransferlog/add',
+          body: triggerRadioParams,
+          url: 'https://radconnext.info/api/cases/updatecase/trigger',
+          method: 'post'
+        }
+        util.proxyRequest(rqParams).then(async(proxyRes)=>{
+          log.info('proxyRes=>'+ JSON.stringify(proxyRes));
+          let socketTrigger = {type: 'updatedicom', dicom: studyTags, caseId: caseId, isChangeRadio: isChangeRadio};
+          let result = await webSocketServer.sendNotify(socketTrigger);
+        });
+      } else {
+        let triggerRadioParams = {studyID: studyID};
+        let rqParams = {
+          body: triggerRadioParams,
+          url: 'https://radconnext.info/api/cases/newcase/trigger',
           method: 'post'
         }
         util.proxyRequest(rqParams).then(async(proxyRes)=>{
@@ -421,7 +426,6 @@ module.exports = (app, wsServer, wsClient, monitor) => {
           let socketTrigger = {type: 'newdicom', dicom: studyTags};
           let result = await webSocketServer.sendNotify(socketTrigger);
         });
-        */
       }
     }, 1100)
   });
