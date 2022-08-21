@@ -801,7 +801,7 @@ module.exports = function ( jq ) {
 		});
 	}
 
-	const doCallApiByProxy = function (apiname, params) {
+	const doCallApiByProxy = function (proxyUrl, params) {
 		return new Promise(function(resolve, reject) {
 			$.post(proxyUrl, params, function(data){
 				resolve(data);
@@ -20679,7 +20679,7 @@ const doLoadMainPage = function(){
   let printjs = 'https://radconnext.info/lib/print/print.min.js';
   let excelexportjs = 'https://radconnext.info/lib/excel/excelexportjs.js';
   let jquerySimpleUploadUrl = 'https://radconnext.info/lib/simpleUpload.min.js';
-  let patientHistoryPluginUrl = "https://radconnext.info/setting/plugin/jquery-patient-history-image-plugin.js?r=ml";
+  let patientHistoryPluginUrl = "https://radconnext.info/setting/plugin/jquery-patient-history-image-plugin.js?r=coeihj";
 	let countdownclockPluginUrl = "https://radconnext.info/setting/plugin/jquery-countdown-clock-plugin.js";
 	let scanpartPluginUrl = "https://radconnext.info/setting/plugin/jquery-scanpart-plugin.js";
 	let customUrgentPlugin = "https://radconnext.info/setting/plugin/jquery-custom-urgent-plugin.js";
@@ -21526,11 +21526,25 @@ module.exports = function ( jq ) {
     tableCell = $('<div style="display: table-cell; padding: 5px;"></div>');
 
     let patientHistoryBox = $('<div id="PatientHistoryBox"></div>').appendTo($(tableCell)).imagehistory( phProp ).data("custom-imagehistory");
+		console.log(patientHistoryBox);
     if ((defualtValue.pn_history) && (defualtValue.pn_history.length > 0)) {
       defualtValue.pn_history.forEach((item, i) => {
         patientHistoryBox.images(item);
       });
     }
+
+		document.onpaste = function(pasteEvent) {
+			var item = pasteEvent.clipboardData.items[0];
+			if (item.type.indexOf("image") === 0) {
+				let phBox = $(tableCell).find('#PatientHistoryBox');
+				if ($(phBox)) {
+					var blob = item.getAsFile();
+					patientHistoryBox.options.doUploadBlob(blob).then((data)=>{
+						//console.log(data);
+					});
+				}
+			}
+		};
 
     $(tableWrapper).on('newpatienthistoryimage', (evt)=>{
       //
