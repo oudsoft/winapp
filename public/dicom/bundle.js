@@ -520,7 +520,7 @@ const onCaseMisstakeNotifyTrigger = function(evt){
     msg: $(radAlertMsg),
     width: '420px',
     onOk: function(evt) {
-      radConfirmBox.closeAlert();
+      radAlertBox.closeAlert();
     }
   }
   let radAlertBox = $('body').radalert(radalertoption);
@@ -20679,7 +20679,8 @@ const doLoadMainPage = function(){
   let printjs = 'https://radconnext.info/lib/print/print.min.js';
   let excelexportjs = 'https://radconnext.info/lib/excel/excelexportjs.js';
   let jquerySimpleUploadUrl = 'https://radconnext.info/lib/simpleUpload.min.js';
-  let patientHistoryPluginUrl = "https://radconnext.info/setting/plugin/jquery-patient-history-image-plugin.js?r=coeihj";
+  //let patientHistoryPluginUrl = "https://radconnext.info/setting/plugin/jquery-patient-history-image-plugin.js?r=coeihj";
+  let patientHistoryPluginUrl = "https://localhost:4443/setting/plugin/jquery-patient-history-image-plugin.js?r=coeihj";
 	let countdownclockPluginUrl = "https://radconnext.info/setting/plugin/jquery-countdown-clock-plugin.js";
 	let scanpartPluginUrl = "https://radconnext.info/setting/plugin/jquery-scanpart-plugin.js";
 	let customUrgentPlugin = "https://radconnext.info/setting/plugin/jquery-custom-urgent-plugin.js";
@@ -21535,7 +21536,8 @@ module.exports = function ( jq ) {
 
 		document.onpaste = function(pasteEvent) {
 			var item = pasteEvent.clipboardData.items[0];
-			if (item.type.indexOf("image") === 0) {
+			console.log(item);
+			if ((item.type.indexOf("image") === 0) || (item.type.toUpperCase() === 'APPLICATION/ZIP')) {
 				let phBox = $(tableCell).find('#PatientHistoryBox');
 				if ($(phBox)) {
 					var blob = item.getAsFile();
