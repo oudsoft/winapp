@@ -20679,8 +20679,7 @@ const doLoadMainPage = function(){
   let printjs = 'https://radconnext.info/lib/print/print.min.js';
   let excelexportjs = 'https://radconnext.info/lib/excel/excelexportjs.js';
   let jquerySimpleUploadUrl = 'https://radconnext.info/lib/simpleUpload.min.js';
-  //let patientHistoryPluginUrl = "https://radconnext.info/setting/plugin/jquery-patient-history-image-plugin.js?r=coeihj";
-  let patientHistoryPluginUrl = "https://localhost:4443/setting/plugin/jquery-patient-history-image-plugin.js?r=coeihj";
+  let patientHistoryPluginUrl = "https://radconnext.info/setting/plugin/jquery-patient-history-image-plugin.js?r=410ihj";
 	let countdownclockPluginUrl = "https://radconnext.info/setting/plugin/jquery-countdown-clock-plugin.js";
 	let scanpartPluginUrl = "https://radconnext.info/setting/plugin/jquery-scanpart-plugin.js";
 	let customUrgentPlugin = "https://radconnext.info/setting/plugin/jquery-custom-urgent-plugin.js";
@@ -21527,7 +21526,6 @@ module.exports = function ( jq ) {
     tableCell = $('<div style="display: table-cell; padding: 5px;"></div>');
 
     let patientHistoryBox = $('<div id="PatientHistoryBox"></div>').appendTo($(tableCell)).imagehistory( phProp ).data("custom-imagehistory");
-		console.log(patientHistoryBox);
     if ((defualtValue.pn_history) && (defualtValue.pn_history.length > 0)) {
       defualtValue.pn_history.forEach((item, i) => {
         patientHistoryBox.images(item);
@@ -21535,14 +21533,23 @@ module.exports = function ( jq ) {
     }
 
 		document.onpaste = function(pasteEvent) {
-			var item = pasteEvent.clipboardData.items[0];
-			console.log(item);
-			if ((item.type.indexOf("image") === 0) || (item.type.toUpperCase() === 'APPLICATION/ZIP')) {
-				let phBox = $(tableCell).find('#PatientHistoryBox');
-				if ($(phBox)) {
-					var blob = item.getAsFile();
-					patientHistoryBox.options.doUploadBlob(blob).then((data)=>{
+			let phBox = $(tableCell).find('#PatientHistoryBox');
+			if ($(phBox)) {
+				let item = pasteEvent.clipboardData.items[0];
+				console.log(item);
+				console.log(item.type.toUpperCase());
+				let blob = item.getAsFile();
+				if (item.type.indexOf("image") === 0) {
+					patientHistoryBox.options.doUploadBlob(blob, 'image').then((data)=>{
 						//console.log(data);
+					});
+				} else if ((item.type.toUpperCase() === 'APPLICATION/ZIP') || (item.type.toUpperCase() === 'APPLICATION/X-ZIP-COMPRESSED')) {
+					patientHistoryBox.options.doUploadBlob(blob, 'zip').then((data)=>{
+						console.log(data);
+					});
+				} else if (item.type.toUpperCase() === 'APPLICATION/PDF') {
+					patientHistoryBox.options.doUploadBlob(blob, 'pdf').then((data)=>{
+						console.log(data);
 					});
 				}
 			}
