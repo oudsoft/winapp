@@ -102,7 +102,11 @@ function RadconWebSocketClient (arg, log) {
 						    log.info(JSON.stringify(reportData));
 								newreportEvtService(reportData, function (output) {
 									log.info('onNewReportEvent Result back =>' + JSON.stringify(output));
-									connection.send(JSON.stringify({type: 'newreportlocalresult', result: output, sendto: data.radioProfile.username, from: 'localorthanc', hospitalId: data.hospitalId, caseId: data.caseId, patientFullName: data.patientFullName}));
+									if (data.radioProfile) {
+										connection.send(JSON.stringify({type: 'newreportlocalresult', result: output, sendto: data.radioProfile.username, from: 'localorthanc', hospitalId: data.hospitalId, caseId: data.caseId, patientFullName: data.patientFullName}));
+									} else {
+										//
+									}
 								});
 							} catch (error){
 								log.error('NewReportError=>' + JSON.stringify(error));
