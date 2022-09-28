@@ -2744,6 +2744,8 @@ module.exports = function ( jq ) {
 	const quickReplyDialogStyle = { 'position': 'fixed', 'z-index': '33', 'left': '0', 'top': '0', 'width': '100%', 'height': '100%', 'overflow': 'auto',/* 'background-color': 'rgb(0,0,0)',*/ 'background-color': 'rgba(0,0,0,0.4)'};
 	const quickReplyContentStyle = { 'background-color': '#fefefe', 'margin': '70px auto', 'padding': '0px', 'border': '2px solid #888', 'width': '620px', 'height': '500px'/*, 'font-family': 'THSarabunNew', 'font-size': '24px'*/ };
 
+	let downloadDicomList = [];
+
   const doCallApi = function(url, rqParams) {
 		return new Promise(function(resolve, reject) {
 			apiconnector.doCallApi(url, rqParams).then((response) => {
@@ -3107,6 +3109,7 @@ module.exports = function ( jq ) {
 		localStorage.removeItem('userdata');
 		localStorage.removeItem('masternotify');
 		//localStorage.removeItem('dicomfilter');
+		sessionStorage.removeItem('logged');
 	  let url = '/index.html';
 	  window.location.replace(url);
 	}
@@ -3764,12 +3767,12 @@ module.exports = function ( jq ) {
 
 	const onSimpleEditorPaste = function(evt){
 		let pathElems = evt.originalEvent.path;
-		let simpleEditor = pathElems.find((path)=>{
+		let simpleEditorPath = pathElems.find((path)=>{
 			if (path.className === 'jqte_editor') {
 				return path;
 			}
 		});
-		if (simpleEditor) {
+		if (simpleEditorPath) {
 			evt.stopPropagation();
 			evt.preventDefault();
 			let clipboardData = evt.originalEvent.clipboardData || window.clipboardData;
@@ -3781,6 +3784,7 @@ module.exports = function ( jq ) {
 			let simpleEditor = $('#SimpleEditorBox').find('#SimpleEditor');
 			let oldContent = $(simpleEditor).val();
 			if ((htmlFormat) && (htmlFormat !== '')) {
+				htmlFormat = doExtractHTMLFromAnotherSource(htmlFormat);
 				document.execCommand('insertHTML', false, htmlFormat);
 				let newContent = oldContent + htmlFormat;
 				let draftbackup = {caseId: caseData.caseId, content: newContent, backupAt: new Date()};
@@ -3788,6 +3792,7 @@ module.exports = function ( jq ) {
 				$('#SimpleEditorBox').trigger('draftbackupsuccess', [draftbackup]);
 			} else {
 				if ((textPastedData) && (textPastedData !== '')) {
+					textPastedData = doExtractHTMLFromAnotherSource(textPastedData);
 					document.execCommand('insertText', false, textPastedData);
 					let newContent = oldContent + textPastedData;
 					let draftbackup = {caseId: caseData.caseId, content: newContent, backupAt: new Date()};
@@ -3797,6 +3802,24 @@ module.exports = function ( jq ) {
 			}
 			//console.log(localStorage.getItem('draftbackup'));
 		}
+	}
+
+	const doExtractHTMLFromAnotherSource = function(anotherText){
+		let startPointText = '<!--StartFragment-->';
+		let endPointText = '<!--EndFragment-->';
+		let tempToken = anotherText.replace('\n', '');
+		let startPosition = tempToken.indexOf(startPointText);
+		if (startPosition >= 0) {
+			let endPosition = tempToken.indexOf(endPointText);
+			tempToken = tempToken.slice((startPosition+20), (endPosition));
+		}
+		/*
+		tempToken = tempToken.split(startPointText).join('<div>');
+		tempToken = tempToken.split(endPointText).join('</div>');
+		*/
+		tempToken = tempToken.replace(startPointText, '<div>');
+		tempToken = tempToken.replace(endPointText, '</div>');
+		return tempToken;
 	}
 
 	const doCallLoadStudyTags = function(hospitalId, studyId){
@@ -3852,6 +3875,46 @@ module.exports = function ( jq ) {
     });
   }
 
+	const doCreateOpenCaseData = function(caseItem){
+		let openCaseData = {caseId: caseItem.id, patientId: caseItem.patientId, hospitalId: caseItem.hospitalId};
+		openCaseData.Modality = caseItem.Case_Modality;
+		openCaseData.StudyDescription = caseItem.Case_StudyDescription;
+		openCaseData.ProtocolName = caseItem.Case_ProtocolName;
+		if ((openCaseData.StudyDescription == '') && (openCaseData.ProtocolName != '')) {
+			openCaseData.StudyDescription = openCaseData.ProtocolName;
+		}
+		return openCaseData;
+	}
+
+	const doAddNotifyCustomStyle = function(){
+    $.notify.addStyle('myshopman', {
+      html: "<div class='superblue'><span data-notify-html/></div>",
+      classes: {
+        base: {
+          "border": "3px solid white",
+          "border-radius": "20px",
+          "color": "white",
+          "background-color": "#184175",
+          "padding": "10px"
+        },
+        green: {
+          "border": "3px solid white",
+          "border-radius": "20px",
+          "color": "white",
+          "background-color": "green",
+          "padding": "10px"
+        },
+        red: {
+          "border": "3px solid white",
+          "border-radius": "20px",
+          "color": "white",
+          "background-color": "red",
+          "padding": "10px"
+        }
+      }
+    });
+  }
+
   return {
 		/* Constant share */
 		caseReadWaitStatus,
@@ -3871,6 +3934,7 @@ module.exports = function ( jq ) {
 		sizeA4Style,
 		quickReplyDialogStyle,
 		quickReplyContentStyle,
+		downloadDicomList,
 		/* Function share */
 		doCallApi,
 		doGetApi,
@@ -3923,7 +3987,9 @@ module.exports = function ( jq ) {
 		doCallLoadStudyTags,
 		doReStructureDicom,
 		doCheckOutTime,
-		doCallPriceChart
+		doCallPriceChart,
+		doCreateOpenCaseData,
+		doAddNotifyCustomStyle
 	}
 }
 
@@ -21768,6 +21834,7 @@ module.exports = function ( jq ) {
       } else {
         /*========================================================*/
         //let pthrna = $('.mainfull').find('#pthrna').prop('checked');
+				/*
         let caseDetail = $(table).find('#Detail').val();
         if (caseDetail !== '') {
           goToSaveCaseStep();
@@ -21788,8 +21855,9 @@ module.exports = function ( jq ) {
             }
           }
           let radConfirmBox = $('body').radalert(radconfirmoption);
-
         }
+				*/
+        $.notify('โปรดแนบประวัติผู้ป่วยอย่างน้อย 1 รูป/ไฟล์', 'error');									
       }
     });
 
@@ -33944,6 +34012,14 @@ module.exports = function ( jq, wsm) {
 			let eventName = 'echoreturn';
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.message}});
 			document.dispatchEvent(event);
+		} else if (data.type == 'newreportlocalresult') {
+			let eventName = 'newreportlocalresult';
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: {result: data.result, hospitalId: data.hospitalId, from: data.from, patientFullName: data.patientFullName}}});
+			document.dispatchEvent(event);
+		} else if (data.type == 'newreportlocalfail') {
+			let eventName = 'newreportlocalfail';
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: {result: data.result, hospitalId: data.hospitalId, from: data.from, patientFullName: data.patientFullName}}});
+			document.dispatchEvent(event);
 		} else if (data.type == 'wrtc') {
 			switch(data.wrtc) {
 				//when somebody wants to call us
@@ -33959,7 +34035,7 @@ module.exports = function ( jq, wsm) {
 				break;
 				case "interchange":
 					wrtcCommon.wsHandleInterchange(wsm, data.interchange);
-				break;				
+				break;
 				case "leave":
 					wrtcCommon.wsHandleLeave(wsm, data.leave);
 				break;

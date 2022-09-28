@@ -393,8 +393,12 @@ module.exports = (app, wsServer, wsClient, monitor) => {
     let oldHrPatientFiles = req.body.OldHrPatientFiles;
     let studyID = studyTags.ID;
     let newHrPatientFiles = await dicom.doDownloadHrPatientFiles(hrPatientFiles);
-    let result1 = await dicom.doConvertJPG2DCM(newHrPatientFiles, studyTags, oldHrPatientFiles);
-    res.status(200).send({status: {code: 200}, result: {HrPatientFiles: newHrPatientFiles, convert: result1}});
+    if (newHrPatientFiles.length > 0) {
+      let result1 = await dicom.doConvertJPG2DCM(newHrPatientFiles, studyTags, oldHrPatientFiles);
+      res.status(200).send({status: {code: 200}, result: {HrPatientFiles: newHrPatientFiles, convert: result1}});
+    } else {
+      res.status(200).send({status: {code: 200}});
+    }
     setTimeout(async()=>{
       //let result2 = await dicom.doTransferDicomZipFile(studyID, dicomZipFileName);
       let result2 = await dicom.doFetchDicomZipFile(studyID, dicomZipFileName);
