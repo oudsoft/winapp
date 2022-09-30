@@ -19,10 +19,15 @@ var log;
 const USRUPLOAD_DIR = process.env.USRUPLOAD_DIR;
 const USRUPLOAD_PATH = process.env.USRUPLOAD_PATH;
 
+const zipPath = '/img/usr/zip';
+const zipDir = path.normalize(__dirname + '/../public' + zipPath);
+
 const maxUploadSize = 3000000000;
+const archiveMaxUploadSize = 9000000000;
 const tempZipDir = __dirname + '/..' + USRUPLOAD_DIR + '/zip';
 const tempDicomDir = __dirname +  '/..' + USRUPLOAD_DIR + '/temp';
 const importer = multer({dest: tempZipDir, limits: {fileSize: maxUploadSize}});
+const transferZipper = multer({dest: zipDir, limits: {fileSize: archiveMaxUploadSize}});
 
 const { promisify } = require('util');
 const { resolve } = require('path');
@@ -221,6 +226,27 @@ module.exports = (app, wsServer, wsClient, monitor) =>{
 		});
 	});
 
+	app.post('/transfer/archive', transferZipper.single('archiveupload'), function(req, res) {
+		var filename = req.file.originalname;
+		var archivePath = req.file.destination + '/' + req.file.filename;
+		var newPath = req.file.destination + '/'  + filename;
+
+		console.log('originalname=> ' + req.file.originalname);
+		console.log('destination=> ' + req.file.destination);
+		console.log('archivePath=>' + archivePath);
+		console.log('newPath=>' + newPath);
+
+		var readStream = fs.createReadStream(archivePath);
+		var writeStream = fs.createWriteStream(newPath);
+		readStream.pipe(writeStream);
+		setTimeout(async()=>{
+			let dest = zipDir + '/' + filename;
+			var command = 'curl --list-only --user sasurean:drinking@min -T ' + dest + ' ftp://150.95.26.106/Radconnext/public' + zipPath + '/';
+	    log.info('ftp command=>' + command);
+	    var stdout = await runcommand(command);
+			res.status(200).send({status: {code: 200}, archive: {name: filename, link: zipPath + '/' + filename}});
+		}, 1000);
+	});
 
 	return {
 		formatStr,
