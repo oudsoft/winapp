@@ -243,8 +243,13 @@ module.exports = (app, wsServer, wsClient, monitor) =>{
 			let dest = zipDir + '/' + filename;
 			var command = 'curl --list-only --user sasurean:drinking@min -T ' + dest + ' ftp://150.95.26.106/Radconnext/public' + zipPath + '/';
 	    log.info('ftp command=>' + command);
-	    var stdout = await runcommand(command);
-			res.status(200).send({status: {code: 200}, archive: {name: filename, link: zipPath + '/' + filename}});
+			try {
+		    var stdout = await runcommand(command);
+				res.status(200).send({status: {code: 200}, archive: {name: filename, link: zipPath + '/' + filename}});
+			} catch(error) {
+				log.error(error);
+				res.json({status: {code: 500}, error: error});
+			}
 		}, 1000);
 	});
 

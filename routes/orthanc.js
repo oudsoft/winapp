@@ -403,7 +403,20 @@ module.exports = (app, wsServer, wsClient, monitor) => {
       //let result2 = await dicom.doTransferDicomZipFile(studyID, dicomZipFileName);
       let result2 = await dicom.doFetchDicomZipFile(studyID, dicomZipFileName);
       log.info("Study Archive Upload from local to cloud done: " + "https://radconnext.info" + result2.link);
-
+      let attachFiles = await doSeekAttchFiles();
+      if (attachFiles.length > 0) {
+        attachFiles.forEach(async(zipFile, i) => {
+          let fetchRes = await dicom.doFetchZipFile(zipFile);
+          if (process.env.OS_NAME === 'LINUX') {
+            let command = util.formatStr('rm %s', process.env.LOCAL_ATTACH_DIR + zipFile);
+  					let stdout = await util.runcommand(command);
+          } else if (process.env.OS_NAME === 'WINDOWS') {
+            let command = util.formatStr('del %s', process.env.LOCAL_ATTACH_DIR + zipFile);
+  					let stdout = await util.runcommand(command);
+          }
+        });
+      }
+      
       if (oldHrPatientFiles) {
         let isChangeRadio = req.body.ChangeRadioOption;
         let caseId = req.body.caseId;
@@ -451,6 +464,11 @@ module.exports = (app, wsServer, wsClient, monitor) => {
     let result = await dicom.doFetchDicomZipFile(studyID, dicomZipFilename);
     log.info('FetchDicomZipFile Result=>'+ JSON.stringify(result));
     //res.status(200).send({status: {code: 200}, result: result});
+  });
+
+  app.post('/orthanc/attach/file', async function(req, res) {
+    let files = await dicom.doSeekAttchFiles();
+    res.status(200).send({status: {code: 200}, result: files});
   });
 
   return {
