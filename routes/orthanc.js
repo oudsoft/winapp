@@ -194,7 +194,9 @@ module.exports = (app, wsServer, wsClient, monitor) => {
   dicom = require('../lib/dicom-lib.js')(monitor);
 
   app.post('/orthanc/study/list/today', function(req, res, next) {
-    let command = 'curl --user demo:demo http://localhost:8042/tools/find -d "{\\"Level\\":\\"Study\\",\\"Query\\":{\\"StudyDate\\": \\"' + formatTodayStr() + '-\\"}, \\"Expand\\":true}"';
+    let todayFmt = formatTodayStr();
+    log.info('todayFmt => ' + todayFmt)
+    let command = 'curl --user demo:demo http://localhost:8042/tools/find -d "{\\"Level\\":\\"Study\\",\\"Query\\":{\\"StudyDate\\": \\"' + todayFmt + '-\\"}, \\"Expand\\":true}"';
     log.info('command=> ' + command);
     util.runcommand(command).then((stdout)=>{
       log.info('stdout=> ' + stdout);
@@ -212,8 +214,10 @@ module.exports = (app, wsServer, wsClient, monitor) => {
   });
 
   app.post('/orthanc/study/list/lastmonth', function(req, res, next) {
-    let command = 'curl --user demo:demo http://localhost:8042/tools/find -d "{\\"Level\\":\\"Study\\",\\"Query\\":{\\"StudyDate\\": \\"' + getLastMonthStr() + '-\\"}, \\"Expand\\":true}"';
-    //log.info('command=> ' + command);
+    let lastMountStr = getLastMonthStr();
+    log.info('lastMountStr=> ' + lastMountStr)
+    let command = 'curl --user demo:demo http://localhost:8042/tools/find -d "{\\"Level\\":\\"Study\\",\\"Query\\":{\\"StudyDate\\": \\"' + lastMountStr + '-\\"}, \\"Expand\\":true}"';
+    log.info('command=> ' + command);
     util.runcommand(command).then((stdout)=>{
       //log.info('stdout=> ' + stdout);
       let studies = JSON.parse(stdout);
