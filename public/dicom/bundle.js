@@ -2190,7 +2190,7 @@ module.exports = function ( jq ) {
 		let radioSockets = await common.doCallApi(callSocketUrl, rqParams);
 		if (radioSockets.length > 0) {
 			//radio online
-			let callZoomMsg = {type: 'callzoom', sendTo: radioSockets[0].id, openurl: zoomMeeting.join_url, password: zoomMeeting.password, topic: zoomMeeting.topic, sender: userdata.username}
+			let callZoomMsg = {type: 'callzoom', sendTo: radioSockets[0].id, openurl: zoomMeeting.join_url, password: zoomMeeting.password, topic: zoomMeeting.topic, sender: userdata.username, hospitalId: userdata.hospitalId}
 			//let myWsm = main.doGetWsm();
 			//console.log(JSON.stringify(callZoomMsg));
 			const main = require('../main.js');
@@ -4576,7 +4576,7 @@ module.exports = function ( jq ) {
 		return new Promise(async function(resolve, reject) {
 			let consultTask = await common.doCallApi('/api/consult/tasks/select/'+ consultItem.consult.id, {});
 			let consultDate = util.formatDateTimeStr(consultItem.consult.createdAt);
-			let consultdatetime = consultDate.split('T');
+			let consultdatetime = consultDate.split(' ');
 			let consultdateSegment = consultdatetime[0].split('-');
 			consultdateSegment = consultdateSegment.join('');
 			let consultdate = util.formatStudyDate(consultdateSegment);
@@ -4932,7 +4932,7 @@ module.exports = function ( jq ) {
 	const doCreateSearchConsultItemRow = function(consultItem){
 		return new Promise(async function(resolve, reject) {
 			let consultDate = util.formatDateTimeStr(consultItem.createdAt);
-			let consultdatetime = consultDate.split('T');
+			let consultdatetime = consultDate.split(' ');
 			let consultdateSegment = consultdatetime[0].split('-');
 			consultdateSegment = consultdateSegment.join('');
 			let consultdate = util.formatStudyDate(consultdateSegment);
@@ -8887,12 +8887,22 @@ module.exports = function ( jq ) {
 	}
 
 	const formatFullDateStr = function(fullDateTimeStr){
-		let dtStrings = fullDateTimeStr.split('T');
+		let dtStrings = '';
+		if (fullDateTimeStr.indexOf('T') >= 0) {
+			dtStrings = fullDateTimeStr.split('T');
+		} else if (fullDateTimeStr.indexOf(' ') >= 0) {
+			dtStrings = fullDateTimeStr.split(' ');
+		}
 		return `${dtStrings[0]}`;;
 	}
 
 	const formatTimeHHMNStr = function(fullDateTimeStr){
-		let dtStrings = fullDateTimeStr.split('T');
+		let dtStrings = '';
+		if (fullDateTimeStr.indexOf('T') >= 0) {
+			dtStrings = fullDateTimeStr.split('T');
+		} else if (fullDateTimeStr.indexOf(' ') >= 0) {
+			dtStrings = fullDateTimeStr.split(' ');
+		}
 		let ts = dtStrings[1].split(':');
 		return `${ts[0]}:${ts[1]}`;;
 	}
