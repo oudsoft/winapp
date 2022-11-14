@@ -1865,7 +1865,7 @@ module.exports = function ( jq ) {
 					$(closeCaseButton).click(async function() {
 						if (incidents[i].case.casestatus.id == 12) {
 							let closeCaseStatus = 6;
-							let closeDescription = '';
+							let closeDescription = 'Hospital try for close case';
 							await common.doUpdateCaseStatusByShortCut(incidents[i].case.id, closeCaseStatus, closeDescription);
 							casecounter.doSetupCounter();
 							$('#SuccessStatusSubCmd').click();
