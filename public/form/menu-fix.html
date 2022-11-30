@@ -238,7 +238,7 @@
           <div class="arrow-left"></div>
         </div>
       </div>
-
+      <!--
       <div class="NavSub" id="StdUrgentConfigSubCmd">
         <div class="NavSubIconCell"></div>
         <div class="NavSubIconCell">
@@ -251,6 +251,7 @@
           <div class="arrow-left"></div>
         </div>
       </div>
+      -->
       <div class="NavSub" id="GoToPortalSubCmd">
         <div class="NavSubIconCell"></div>
         <div class="NavSubIconCell">
@@ -406,11 +407,13 @@
     $('#MyConsultSubCmd').trigger('myconsult', [eventData]);
   });
 
+  /*
   $('#StdUrgentConfigSubCmd').click((evt)=>{
     let eventData = {userId: yourUserdata.id};
     $('#StdUrgentConfigSubCmd').trigger('stdurgentconfig', [eventData]);
   });
-
+  */
+  
   $('#UserInfoSubCmd').click((evt)=>{
     let eventData = {userId: yourUserdata.id};
     $('#UserInfoSubCmd').trigger('openedituserinfo', [eventData]);

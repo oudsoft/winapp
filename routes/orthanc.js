@@ -49,6 +49,7 @@ var getYesterdayStr = function(){
 }
 
 var getLastMonthStr = function(){
+  //log.info('LASTDAYNUMBER=> ' + process.env.LASTDAYNUMBER);
   var d = new Date();
   //d.setDate(d.getMonth() - 1);
   d.setDate(d.getDate() - process.env.LASTDAYNUMBER);
@@ -191,7 +192,7 @@ module.exports = (app, wsServer, wsClient, monitor) => {
   webSocketClient = wsClient;
 
   util = require('../lib/utility.js')(monitor);
-  dicom = require('../lib/dicom-lib.js')(monitor);
+  dicom = require('../lib/dicom-lib.js')(monitor, webSocketServer);
 
   app.post('/orthanc/study/list/today', function(req, res, next) {
     let todayFmt = formatTodayStr();
@@ -215,7 +216,7 @@ module.exports = (app, wsServer, wsClient, monitor) => {
 
   app.post('/orthanc/study/list/lastmonth', function(req, res, next) {
     let lastMountStr = getLastMonthStr();
-    log.info('lastMountStr=> ' + lastMountStr)
+    log.info('lastMountStr=> ' + lastMountStr);
     let command = 'curl --user demo:demo http://localhost:8042/tools/find -d "{\\"Level\\":\\"Study\\",\\"Query\\":{\\"StudyDate\\": \\"' + lastMountStr + '-\\"}, \\"Expand\\":true}"';
     log.info('command=> ' + command);
     util.runcommand(command).then((stdout)=>{
@@ -229,6 +230,9 @@ module.exports = (app, wsServer, wsClient, monitor) => {
               studies[i].SamplingSeries = seriesJSON;
               break;
             }
+          }
+          if (!studies[i].SamplingSeries) {
+            studies[i].SamplingSeries = await doCallSeries(studies[i].Series[0]);
           }
         }
         setTimeout(()=> {
@@ -397,16 +401,21 @@ module.exports = (app, wsServer, wsClient, monitor) => {
     let oldHrPatientFiles = req.body.OldHrPatientFiles;
     let studyID = studyTags.ID;
     let userId = req.body.userId;
+    let caseId = req.body.caseId;
+
+    let convertResult = undefined;
     let newHrPatientFiles = await dicom.doDownloadHrPatientFiles(hrPatientFiles);
+    log.info('newHrPatientFiles=>' + JSON.stringify(newHrPatientFiles));
     if (newHrPatientFiles.length > 0) {
-      let result1 = await dicom.doConvertJPG2DCM(newHrPatientFiles, studyTags, oldHrPatientFiles);
-      res.status(200).send({status: {code: 200}, result: {HrPatientFiles: newHrPatientFiles, convert: result1}});
+      convertResult = await dicom.doConvertJPG2DCM(newHrPatientFiles, studyTags, oldHrPatientFiles);
+      res.status(200).send({status: {code: 200}, result: {HrPatientFiles: newHrPatientFiles, convert: convertResult}});
     } else {
       res.status(200).send({status: {code: 200}});
     }
+    log.info('convertResult=>' + JSON.stringify(convertResult));
+
     setTimeout(async()=>{
-      //let result2 = await dicom.doTransferDicomZipFile(studyID, dicomZipFileName);
-      let result2 = await dicom.doFetchDicomZipFile(studyID, dicomZipFileName);
+      let result2 = await dicom.doFetchDicomZipFile(studyID, dicomZipFileName, caseId);
       log.info("Study Archive Upload from local to cloud done: " + "https://radconnext.info" + result2.link);
 
       let fetchZipFile = async function(zipFileName){
@@ -428,11 +437,10 @@ module.exports = (app, wsServer, wsClient, monitor) => {
         }
       }
 
-      let caseId = req.body.caseId;
       let event = req.body.event;
       if (event === 'update') {
         let isChangeRadio = req.body.ChangeRadioOption;
-        let triggerRadioParams = {studyID: studyID, caseId: caseId, userId: userId, isChangeRadio: isChangeRadio};
+        let triggerRadioParams = {studyID: studyID, caseId: caseId, userId: userId, isChangeRadio: isChangeRadio, Case_PatientHRLink: convertResult};
         let rqParams = {
           body: triggerRadioParams,
           url: 'https://radconnext.info/api/cases/updatecase/trigger',
@@ -444,7 +452,7 @@ module.exports = (app, wsServer, wsClient, monitor) => {
           let result = await webSocketServer.sendNotify(socketTrigger);
         });
       } else if (event === 'new') {
-        let triggerRadioParams = {studyID: studyID, userId: userId};
+        let triggerRadioParams = {studyID: studyID, userId: userId, Case_PatientHRLink: convertResult};
         let rqParams = {
           body: triggerRadioParams,
           url: 'https://radconnext.info/api/cases/newcase/trigger',
@@ -499,6 +507,15 @@ module.exports = (app, wsServer, wsClient, monitor) => {
     } else {
       res.status(200).send({status: {code: 200}, result: files});
     }
+  });
+
+  app.post('/orthanc/test/transfer/dicom', async function(req, res) {
+    // curl -X POST -H "Content-Type: application/json" http://localhost:3000/api/orthanc/test/transfer/dicom -d '{"StudyID": "fa73f496-53909cac-e32922ea-92fcff27-e88d05c7", "FileName": "test.zip"}'
+    let studyID = req.body.StudyID;
+    let fileName = req.body.FileName;
+    let caseId = req.body.caseId;
+    let result = await dicom.doFetchDicomZipFile(studyID, fileName, caseId);
+    res.status(200).send({status: {code: 200}, result: result});
   });
 
   return {

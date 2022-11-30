@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link href="/favicon.ico" rel="shortcut icon" type="image/x-icon"/>
+    <title>Test Download Zip</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script type="text/javascript" src="../../lib/jquery.js"></script>
+    <script type="text/javascript" src="../../lib/jquery-ui.min.js"></script>
+  </head>
+  <body>
+    <div>
+      <div>Zip File</div>
+      <div>
+        <a href="/img/usr/zip/SAITHONG_RUCHISAN-20221128-122758-141002.zip" target="_blank">SAITHONG RUCHISAN</a>
+      </div>
+      <div>
+        <a href="/img/usr/zip/CHIRAWUT_SUNTHONWARI-20221123-082650-104202.zip" target="_blank">CHIRAWUT SUNTHONWARI</a>
+      </div>
+    </div>
+    <div style="height: 50px;"></div>
+    <div>
+      <div>Image File</div>
+      <div>
+        <a id="imgtest1" href="/img/usr/upload/13439ed1-116b.jpg" target="_blank">13439ed1-116b.jpg</a>
+      </div>
+      <div>
+        <a id="imgtest2" href="/img/usr/upload/18231376-4b32.jpg" target="_blank">18231376-4b32.jpg</a>
+      </div>
+    </div>
+  </body>
+</html>
+
+<script type="text/javascript">
+  function getBinaryContent(url, name) {
+    //return new Promise((resolve, reject) => {
+      try {
+        let xhr = new XMLHttpRequest();
+        xhr.open("GET", url, true);
+        xhr.onreadystatechange = function(){
+          console.log(xhr.readyState);
+          if (xhr.readyState == 4) {
+            //let response = JSON.parse(xhr.responseText);
+            /*
+            console.log(xhr.responseText);
+            let pom = document.createElement('a');
+            pom.setAttribute('target', "_blank");
+            pom.setAttribute('href', xhr.responseText);
+            pom.setAttribute('download', name);
+            pom.click();
+            */
+
+            console.log(xhr.response);
+            /*
+            const arrayBuffer = reader.readAsArrayBuffer(xhr.response);
+            let blob = new Blob([arrayBuffer], { type: 'image/jpeg'});
+            console.log(blob);
+            */
+            let blobUrl = URL.createObjectURL(xhr.response);
+            console.log(blobUrl);
+            var link = document.createElement("a"); // Or maybe get it from the current document
+            link.href = blobUrl;
+            link.download = name;
+            link.click();
+          }
+        }
+        xhr.onload = function(data){
+          console.log(data);
+        }
+        xhr.send();
+      } catch (err) {
+        reject(new Error(err));
+      }
+    //});
+  }
+
+  let url = '/img/usr/zip/SAITHONG_RUCHISAN-20221128-122758-141002.zip';
+  //getBinaryContent(url, 'zip1.zip');
+
+  /*
+  $('#imgtest1').on('click', (evt)=>{
+    evt.preventDefault();
+    url = '/img/usr/upload/13439ed1-116b.jpg';
+    getBinaryContent(url, 'img1.jpg');
+  })
+  */
+
+  (function (fetch, console) {
+
+    fetch('/img/usr/zip/CHIRAWUT_SUNTHONWARI-20221123-082650-115448.zip')
+      .then(res => res.blob())
+      .then(data => console.save(data));
+
+    console.save = function (data, filename) {
+      console.log(data);
+      if (!data) {
+        console.error('Console.save: No data')
+        return;
+      }
+
+      if (!filename) filename = 'zip1.zip'
+      /*
+      if (typeof data === "object") {
+        data = JSON.stringify(data, undefined, 4);
+      }
+      */
+      var blob = new Blob([data], {type: 'application/octetstream'});
+      var e = document.createEvent('MouseEvents');
+      var a = document.createElement('a');
+
+      a.download = filename;
+      a.href = window.URL.createObjectURL(blob);
+      a.dataset.downloadurl =  ['application/octetstream', a.download, a.href].join(':');
+      e.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+      a.dispatchEvent(e);
+    };
+  }).call(this, window.fetch, window.console || {});
+
+</script>

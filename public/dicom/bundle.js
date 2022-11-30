@@ -690,52 +690,15 @@ module.exports = {
 },{"./mod/apiconnect.js":2,"./mod/case.js":3,"./mod/casecounter.js":4,"./mod/commonlib.js":5,"./mod/consult.js":6,"./mod/createnewcase.js":7,"./mod/dicomfilter.js":9,"./mod/jquery-ex.js":10,"./mod/master-notify.js":11,"./mod/softphonelib.js":13,"./mod/urgentstd.js":15,"./mod/userinfolib.js":16,"./mod/userprofilelib.js":17,"./mod/utilmod.js":18,"jquery":22}],2:[function(require,module,exports){
 /* apiconnect.js */
 
-const apiExt = ".php";
 const proxyRootUri = '/api';
 const proxyApi = '/apiproxy';
 const proxyEndPoint = "/callapi";
-const proxyUrl = proxyRootUri + proxyApi + proxyEndPoint;
-//const hostIP = '202.28.68.28';
-const hostApiPort = '8080';
-const hostIP = 'localhost';
-const hostOrthancApiPort = '8042';
-const hostName = hostIP + ':' + hostApiPort;
-const domainName = 'radconnext.com';
+
 const adminEmailAddress = 'oudsoft@yahoo.com';
 
-
-//const hostURL = 'https://radconnext.com/rad_test/api';
-const hostURL = 'https://radconnext.com/radconnext/api';
-
-const hostOrthancUrl = 'http://' + hostIP + ':' +  hostOrthancApiPort;
 const orthancProxyApi = '/orthancproxy';
 
-const RadConStatus = [
-  {id: 1, status_en: 'draft', status_th: "Draft", use: false},
-  {id: 2, status_en: 'wait_edit', status_th: "รอแก้ไข", use: false},
-  {id: 3, status_en: 'wait_start', status_th: "รอเริ่ม", use: false},
-  {id: 4, status_en: 'wait_zip', status_th: "รอเตรียมไฟล์ภาพ", use: false},
-  {id: 5, status_en: 'processing', status_th: "กำลังเตรียมไฟล์ภาพ", use: false},
-  {id: 6, status_en: 'wait_upload', status_th: "รอส่งไฟล์ภาพ", use: false},
-  {id: 7, status_en: 'uploading', status_th: "กำลังส่งไฟล์ภาพ", use: false},
-  {id: 8, status_en: 'wait_consult', status_th: "รอหมอ Consult", use: false},
-  {id: 9, status_en: 'wait_dr_consult', status_th: "รอหมอตอบ Consult", use: false},
-  {id: 10, status_en: 'consult_expire', status_th: "หมอตอบ Consult ไม่ทันเวลา", use: false},
-  {id: 11, status_en: 'wait_consult_ack', status_th: "ตอบ Consult แล้ว", use: false},
-  {id: 12, status_en: 'wait_response_1', status_th: "รอหมอตอบรับ", use: false},
-  {id: 13, status_en: 'wait_response_2', status_th: "รอหมอตอบรับ", use: false},
-  {id: 14, status_en: 'wait_response_3', status_th: "รอหมอตอบรับ", use: false},
-  {id: 15, status_en: 'wait_response_4', status_th: "รอหมอตอบรับ", use: false},
-  {id: 16, status_en: 'wait_response_5', status_th: "รอหมอตอบรับ", use: false},
-  {id: 17, status_en: 'wait_response_6', status_th: "รอหมอตอบรับ", use: false},
-  {id: 18, status_en: 'wait_dr_key', status_th: "รออ่านผล", use: true},
-  {id: 19, status_en: 'wait_close', status_th: "รอพิมพ์ผล", use: true},
-  {id: 20, status_en: 'wait_close2', status_th: "รอพิมพ์ผลที่แก้ไข", use: true},
-  {id: 21, status_en: 'close', status_th: "ดูผลแล้ว", use: true},
-  {id: 22, status_en: 'cancel', status_th: "ยกเลิก", use: true},
-];
-
-const filterValue = (obj, key, value)=> obj.filter(v => v[key] === value);
+const arrFilterValue = (arr, key, value)=> arr.filter(v => v[key] === value);
 
 
 module.exports = function ( jq ) {
@@ -1231,23 +1194,15 @@ module.exports = function ( jq ) {
 
 	return {
 		/* const */
-		apiExt,
 		proxyRootUri,
 		proxyApi,
 		proxyEndPoint,
-		proxyUrl,
-		hostIP,
-		hostURL,
-		hostApiPort,
-		hostOrthancApiPort,
-		hostName,
-		hostURL,
-		hostOrthancUrl,
+
 		orthancProxyApi,
-		RadConStatus,
     adminEmailAddress,
+    
 		/*method*/
-		filterValue,
+		arrFilterValue,
 		doTestAjaxCallApi,
     doCallApiByAjax,
 		doCallApiDirect,
@@ -1309,7 +1264,7 @@ module.exports = function ( jq ) {
 				let response = await common.doCallApi('/api/cases/filter/hospital', rqParams);
 				if (response.status.code === 200) {
 					if (response.Records.length > 0) {
-						console.log(response.Records);
+						//console.log(response.Records);
 						let rwTable = await doShowCaseList(response.Records);
 						$(".mainfull").empty().append($(rwTable));
 						casecounter.doSetupCounter();
@@ -1669,9 +1624,19 @@ module.exports = function ( jq ) {
 			$(itemColumn).append(caseRADI);
 			$(itemColumn).appendTo($(itemRow));
 
+			let caseEventLog = $('<span id="CaseStatusName"></span>');
+			$(caseEventLog).text(caseSTAT)
+			$(caseEventLog).on('caseeventlog', (evt)=>{
+				let logData = evt.detail.data;
+				console.log(logData);
+			});
 			itemColumn = $('<div style="display: table-cell; text-align: left; vertical-align: middle;"></div>');
-			$(itemColumn).append($('<span id="CaseStatusName">' + caseSTAT + '</span>'));
+			$(itemColumn).append($(caseEventLog));
+			$(itemColumn).css({'cursor': 'pointer'});
 			$(itemColumn).appendTo($(itemRow));
+			$(itemColumn).on('click', (evt)=>{
+				doOpenCaseEventLog(caseItem.case.id);
+			});
 
 			let caseCMD = doCreateCaseItemCommand(itemRow, caseItem);
 
@@ -1713,12 +1678,13 @@ module.exports = function ( jq ) {
 			let myTasks = await common.doCallMyUserTasksCase();
 			let userdata = JSON.parse(localStorage.getItem('userdata'));
 			let rowStyleClass = {/*"font-family": "THSarabunNew", "font-size": "22px"*/};
-			let rwTable = $('<table width="100%" cellpadding="5" cellspacing="0"></table>');
+			let rwTable = $('<table id="CaseTable" width="100%" cellpadding="5" cellspacing="0"></table>');
 			let headRow = $('<tr class="table-header-row"></tr>');
 			$(headRow).css(rowStyleClass);
-			let headColumns = $('<td width="15%" align="center">เวลาที่ส่งอ่าน</td><td width="10%" align="center">ชื่อ</td><td width="5%" align="center">เพศ/อายุ</td><td width="8%" align="center">HN</td><td width="5%" align="center">Mod.</td><td width="15%" align="center">Scan Part</td><td width="10%" align="center">ประเภทความด่วน</td><td width="10%" align="center">แพทย์ผู้ส่ง</td><td width="10%" align="center">รังสีแพทย์</td><td width="10%" align="center">สถานะเคส</td><td width="*" align="center">คำสั่ง</td>');
+			let headColumns = $('<td width="10%" align="center">เวลาที่ส่งอ่าน</td><td width="10%" align="center">ชื่อ</td><td width="5%" align="center">เพศ/อายุ</td><td width="8%" align="center">HN</td><td width="5%" align="center">Mod.</td><td width="12%" align="center">Scan Part</td><td width="10%" align="center">ประเภทความด่วน</td><td width="10%" align="center">แพทย์ผู้ส่ง</td><td width="10%" align="center">รังสีแพทย์</td><td width="18%" align="center">สถานะเคส</td><td width="*" align="center">คำสั่ง</td>');
 			$(rwTable).append($(headRow));
 			$(headRow).append($(headColumns));
+			console.log(incidents);
 			for (let i=0; i < incidents.length; i++) {
 				let dataRow = $('<tr class="case-row"></tr>');
 				$(dataRow).css(rowStyleClass);
@@ -1734,6 +1700,18 @@ module.exports = function ( jq ) {
 				if ((caseScanparts) && (caseScanparts.length > 0)) {
 					yourSelectScanpartContent = await common.doRenderScanpartSelectedAbs(caseScanparts);
 				}
+
+				let caseStatusBox = $('<div class="case-status-cell">'+ incidents[i].case.casestatus.CS_Name_EN + '</div>');
+				//$(caseStatusBox).css({'cursor': 'pointer', 'background-color': '#28B463'});
+				$(caseStatusBox).data('caseData', incidents[i]);
+				$(caseStatusBox).on('click', (evt)=>{
+					doOpenCaseEventLog(incidents[i].case.id);
+				});
+
+				$(caseStatusBox).on('caseeventlog', (evt, data)=>{
+					doActionCaseEventLog(caseStatusBox, data);
+				});
+
 				//$(dataRow).append($('<td align="center"><div class="tooltip">'+ casedate + '<span class="tooltiptext">' + casetime + '</span></div></td>'));
 				$(dataRow).append($('<td align="center">' + casedate + ' : ' + casetime + '</td>'));
 				$(dataRow).append($('<td align="center"><div class="tooltip">'+ incidents[i].case.patient.Patient_NameEN + ' ' + incidents[i].case.patient.Patient_LastNameEN + '<span class="tooltiptext">' + incidents[i].case.patient.Patient_NameTH + ' ' + incidents[i].case.patient.Patient_LastNameTH + '</span></div></td>'));
@@ -1744,10 +1722,14 @@ module.exports = function ( jq ) {
 				let scanpartCol = $('<td align="center"></td>');
 				$(dataRow).append($(scanpartCol));
 				$(scanpartCol).append($(yourSelectScanpartContent));
-				$(dataRow).append($('<td align="center">'+ incidents[i].case.urgenttype.UGType_Name + '</td>'));
+				//$(dataRow).append($('<td align="center">'+ incidents[i].case.urgenttype.UGType_Name + '</td>'));
+				$(dataRow).append($('<td align="center">'+ incidents[i].case.sumase.UGType_Name + '</td>'));
 				$(dataRow).append($('<td align="center">'+ incidents[i].Refferal.User_NameTH + ' ' + incidents[i].Refferal.User_LastNameTH + '</td>'));
 				$(dataRow).append($('<td align="center">'+ incidents[i].Radiologist.User_NameTH + ' ' + incidents[i].Radiologist.User_LastNameTH + '</td>'));
-				let caseStatusCol = $('<td align="center"><span id="CaseStatusName">'+ incidents[i].case.casestatus.CS_Name_EN + '</span></td>');
+
+
+				let caseStatusCol = $('<td align="center" valign="top"></td>').css({'cursor': 'pointer'});
+				$(caseStatusCol).append($(caseStatusBox));
 				$(dataRow).append($(caseStatusCol));
 				/*
 				if ((incidents[i].case.casestatus.id == 1) || (incidents[i].case.casestatus.id == 2) || (incidents[i].case.casestatus.id == 8)) {
@@ -1865,7 +1847,7 @@ module.exports = function ( jq ) {
 					$(closeCaseButton).click(async function() {
 						if (incidents[i].case.casestatus.id == 12) {
 							let closeCaseStatus = 6;
-							let closeDescription = 'Hospital try for close case';
+							let closeDescription = 'Hospital try for close case from Edit mode';
 							await common.doUpdateCaseStatusByShortCut(incidents[i].case.id, closeCaseStatus, closeDescription);
 							casecounter.doSetupCounter();
 							$('#SuccessStatusSubCmd').click();
@@ -2129,8 +2111,11 @@ module.exports = function ( jq ) {
 			let remarkCell = $('<td align="left"></td>');
       $(logItem).append($(remarkCell));
 			if (keeplogs[i].triggerAt) {
+				console.log(keeplogs[i].triggerAt);
+				//let yymmddhhmnss = util.formatDateTimeDDMMYYYYJSON(keeplogs[i].triggerAt);
 				let yymmddhhmnss = keeplogs[i].triggerAt;
 				let yymmddhhmnText = util.fmtStr('%s-%s-%s %s:%s:%s', yymmddhhmnss.YY, yymmddhhmnss.MM, yymmddhhmnss.DD, yymmddhhmnss.HH, yymmddhhmnss.MN, yymmddhhmnss.SS);
+				console.log(yymmddhhmnText);
 				let triggerDT = new Date(yymmddhhmnText);
 				console.log(triggerDT);
 				let d = new Date();
@@ -2425,6 +2410,197 @@ module.exports = function ( jq ) {
 		$(contentDialog).append($(dialogHeader)).append($(dialogContent)).append($(dialogFooter));
 		$(contentDialog).css(common.quickReplyContentStyle);
 		return $(modalDialog).append($(contentDialog))
+	}
+
+	const doActionCaseEventLog = function(box, data) {
+		let caseBoxData = $(box).data('caseData');
+		if (data.caseId == caseBoxData.case.id) {
+			if ([3, 4, 7].includes(Number(data.to))) {
+				$(box).parent().css({'background-color': '#EB984E', 'border': '1px solid black'});
+			} else {
+				$(box).parent().css({'background-color': '#28B463', 'border': '1px solid black'});
+			}
+			if (data.progress) {
+				$(box).empty();
+				$(box).append($('<div></div>').text('Uploading'));
+				$(box).append($('<div></div>').text('Progress ' + data.progress + '%'));
+			} else {
+				if ([5, 10, 11, 12, 13, 14].includes(Number(data.to))) {
+					$(box).empty();
+					$(box).append($('<div></div>').text('ส่งผลแล้ว'));
+				} else {
+					const doCreateClokRemark = function(triggerAt){
+						let yymmddhhmnss = triggerAt;
+						let yymmddhhmnText = util.fmtStr('%s-%s-%s %s:%s:%s', yymmddhhmnss.YY, yymmddhhmnss.MM, yymmddhhmnss.DD, yymmddhhmnss.HH, yymmddhhmnss.MN, yymmddhhmnss.SS);
+						console.log(yymmddhhmnText);
+						let triggerDT = new Date(yymmddhhmnText);
+						console.log(triggerDT);
+						let d = new Date();
+						console.log(d);
+						let diffTime = Math.abs(triggerDT - d);
+						let hh = parseInt(diffTime/(1000*60*60));
+						let mn = parseInt((diffTime - (hh*1000*60*60))/(1000*60));
+						let clockFrag = $('<span></span>').countdownclock({countToHH: hh, countToMN: mn});
+						clockCountdownDiv = $('<span id="ClockCountDownBox"></span>').css({'margin-left': '10px'});
+						$(clockCountdownDiv).append($(clockFrag.hhFrag)).append($(clockFrag.coFrag)).append($(clockFrag.mnFrag))
+						return $(clockCountdownDiv);
+					}
+
+					const doCallTaskDirect = function(url, caseId) {
+						return new Promise(async function(resolve, reject) {
+							let taskRes = await common.doGetApi(url, {});
+							let tasks = taskRes.Records;
+							let task = await tasks.find((item)=>{
+								if (item.caseId == caseId) {
+									return item;
+								}
+							});
+							if (task) {
+								let taskTriggerAt = util.formatDateTimeDDMMYYYYJSON(task.triggerAt);
+								let clockCountdownBox = doCreateClokRemark(taskTriggerAt);
+								resolve($(clockCountdownBox));
+							} else {
+								resolve();
+							}
+						})
+					}
+
+					let clockCountdownDiv = undefined;
+					if (data.triggerAt) {
+						clockCountdownDiv = doCreateClokRemark(data.triggerAt);
+					}
+
+					if ([1].includes(Number(data.to))) {
+						let caseKey = data.remark.indexOf('สร้างเคส');
+						if (data.triggerAt) {
+							let lineKey = data.remark.indexOf('Line');
+							if (lineKey >= 0) {
+								$(box).data('expireTriggerAt', data.triggerAt);
+							}
+							let voipKey = data.remark.indexOf('VOIP');
+							if (voipKey >= 0) {
+								$(box).empty();
+								$(box).append($('<div></div>').text('แจ้งรังสีแพทย์รับเคสทาง Line แล้ว'));
+								let callBox = $(box).find('#CallTrigger');
+								console.log(callBox);
+								console.log(callBox.length);
+								if (callBox.length == 0) {
+									if (clockCountdownDiv) {
+										if (!$(box).find('#CallTrigger')) {
+											let remark1 = $('<span></span>').text('จะโทรตามภายใน');
+											let remark2 = $('<span></span>').text('นาที').css({'margin-left': '10px'});
+											$(box).append($('<div id="CallTrigger"></div>').append($(remark1)).append($(clockCountdownDiv)).append($(remark2)));
+										}
+									}
+								}
+								let expireTriggerAt = $(box).data('expireTriggerAt');
+								if (expireTriggerAt) {
+									let yymmddhhmnss2 = expireTriggerAt;
+									let yymmddhhmnText2 = util.fmtStr('%s-%s-%s %s:%s:%s', yymmddhhmnss2.YY, yymmddhhmnss2.MM, yymmddhhmnss2.DD, yymmddhhmnss2.HH, yymmddhhmnss2.MN, yymmddhhmnss2.SS);
+									console.log(yymmddhhmnText2);
+									let triggerDT2 = new Date(yymmddhhmnText2);
+									console.log(triggerDT2);
+									let d2 = new Date();
+									console.log(d2);
+									let diffTime2 = Math.abs(triggerDT2 - d2);
+									let hh2 = parseInt(diffTime2/(1000*60*60));
+									let mn2 = parseInt((diffTime2 - (hh2*1000*60*60))/(1000*60));
+									let clockFrag2 = $('<span></span>').countdownclock({countToHH: hh2, countToMN: mn2});
+									let clockCountdownDiv2 = $('<span id="ClockCountDownBox"></span>').css({'margin-left': '10px'});
+									$(clockCountdownDiv2).append($(clockFrag2.hhFrag)).append($(clockFrag2.coFrag)).append($(clockFrag2.mnFrag))
+									let remark3 = $('<span></span>').text('เวลารับเคสที่เหลือ');
+									let remark4 = $('<span></span>').text('นาที').css({'margin-left': '10px'});
+									$(box).append($('<div></div>').append($(remark3)).append($(clockCountdownDiv2)).append($(remark4)));
+								}
+							} else {
+								$(box).empty();
+								$(box).append($('<div></div>').text('แจ้งรังสีแพทย์รับเคสทาง Line แล้ว'));
+								let callUrl = '/api/voiptask/list';
+								doCallTaskDirect(callUrl, data.caseId).then((clockBox)=>{
+									if (clockBox) {
+										let callBox = $(box).find('#CallTrigger');
+										console.log(callBox);
+										if (callBox.length == 0) {
+											let remark1 = $('<span></span>').text('จะโทรตามภายใน');
+											let remark2 = $('<span></span>').text('นาที').css({'margin-left': '10px'});
+											$(box).append($('<div id="CallTrigger"></div>').append($(remark1)).append($(clockCountdownDiv)).append($(remark2)));
+										}
+									} else {
+										let remark1 = $('<span></span>').text('รังสีแพทย์ไม่ได้ตั้งค่าให้โทรอัตโนมัติ');
+										$(box).append($('<div></div>').append($(remark1)));
+									}
+								});
+							}
+						} else if (caseKey >= 0) {
+							$(box).empty();
+							$(box).append($('<div></div>').text('สร้างเคสสำเร็จ'));
+							let remark1 = $('<span></span>').text('รอ Upload Zip ไฟล์');
+							$(box).append($('<div></div>').append($(remark1)));
+						} else {
+							$(box).empty();
+							$(box).append($('<div></div>').text('Upload แล้ว'));
+							let remark1 = $('<span></span>').text('รังสีแพทย์ไม่ได้ตั้งค่าให้แจ้งเตือนใดๆ');
+							$(box).append($('<div></div>').append($(remark1)));
+						}
+					} else if ([2].includes(Number(data.to))) {
+						$(box).empty();
+						$(box).append($('<div></div>').text('รังสีแพทย์รับเคสแล้ว'));
+						if (clockCountdownDiv) {
+							let remark1 = $('<span></span>').text('เวลาส่งผลที่เหลือ');
+							let remark2 = $('<span></span>').text('นาที').css({'margin-left': '10px'});
+							$(box).append($('<div></div>').append($(remark1)).append($(clockCountdownDiv)).append($(remark2)));
+						} else {
+							let callUrl = '/api/tasks/task/list';
+							doCallTaskDirect(callUrl, data.caseId).then((clockBox)=>{
+								if (clockBox) {
+									let remark1 = $('<span></span>').text('เวลาส่งผลที่เหลือ');
+									let remark2 = $('<span></span>').text('นาที').css({'margin-left': '10px'});
+									$(box).append($('<div></div>').append($(remark1)).append($(clockBox)).append($(remark2)));
+								}
+							});
+						}
+					} else if ([8].includes(Number(data.to))) {
+						$(box).empty();
+						$(box).append($('<div></div>').text('รังสีแพทย์เปิดดูเคสแล้ว'));
+						if (clockCountdownDiv) {
+							let remark1 = $('<span></span>').text('เวลาส่งผลที่เหลือ');
+							let remark2 = $('<span></span>').text('นาที').css({'margin-left': '10px'});
+							$(box).append($('<div></div>').append($(remark1)).append($(clockCountdownDiv)).append($(remark2)));
+						} else {
+							let callUrl = '/api/tasks/task/list';
+							doCallTaskDirect(callUrl, data.caseId).then((clockBox)=>{
+								if (clockBox) {
+									let remark1 = $('<span></span>').text('เวลาส่งผลที่เหลือ');
+									let remark2 = $('<span></span>').text('นาที').css({'margin-left': '10px'});
+									$(box).append($('<div></div>').append($(remark1)).append($(clockBox)).append($(remark2)));
+								}
+							});
+						}
+					} else if ([9].includes(Number(data.to))) {
+						$(box).empty();
+						$(box).append($('<div></div>').text('กำลังอ่านผล'));
+						if (clockCountdownDiv) {
+							let remark1 = $('<span></span>').text('กำหนดส่งผลในอีก');
+							let remark2 = $('<span></span>').text('นาที').css({'margin-left': '10px'});
+							$(box).append($('<div></div>').append($(remark1)).append($(clockCountdownDiv)).append($(remark2)));
+						} else {
+							doCallTaskDirect(data.caseId).then((clockBox)=>{
+								if (clockBox) {
+									let remark1 = $('<span></span>').text('เวลาส่งผลที่เหลือ');
+									let remark2 = $('<span></span>').text('นาที').css({'margin-left': '10px'});
+									$(box).append($('<div></div>').append($(remark1)).append($(clockBox)).append($(remark2)));
+								}
+							});
+						}
+					} else if ([4].includes(Number(data.to))) {
+						$(box).empty();
+						$(box).append($('<div></div>').text('หมดเวลาอ่านผล'));
+						let remark1 = $('<span></span>').text('รังสีแพทย์อ่านผลค้างไว้ กรุณาติดต่อรังสีแพทย์');
+						$(box).append($('<div></div>').append($(remark1)));
+					}
+				}
+			}
+		}
 	}
 
 	return {
@@ -3757,6 +3933,28 @@ module.exports = function ( jq ) {
 
 	const doExtractList = function(originList, from, to) {
 		return new Promise(async function(resolve, reject) {
+			await originList.sort((a,b) => {
+				if ((a.MainDicomTags) && (b.MainDicomTags)) {
+					let aStudyDate = a.MainDicomTags.StudyDate;
+					let aStudyTime = a.MainDicomTags.StudyTime
+					let bStudyDate = b.MainDicomTags.StudyDate;
+					let bStudyTime = b.MainDicomTags.StudyTime
+					if ((aStudyDate) && (aStudyTime) && (bStudyDate) && (bStudyTime)) {
+						let av = util.getDatetimeValue(aStudyDate, aStudyTime);
+						let bv = util.getDatetimeValue(bStudyDate, bStudyTime);
+						if (av && bv) {
+							return bv - av;
+						} else {
+							return 0;
+						}
+					} else {
+						return 0;
+					}
+				} else {
+					return 0;
+				}
+			});
+
 			let exResults = [];
 			let	promiseList = new Promise(function(resolve2, reject2){
 				for (let i = (from-1); i < to; i++) {
@@ -4060,6 +4258,100 @@ module.exports = function ( jq ) {
     });
   }
 
+	const doFilterMajorType = function(masters, majorType) {
+		return new Promise(async function(resolve, reject) {
+			let result = await masters.filter((item) => {
+				if (item.MajorType == majorType) {
+					return item;
+				}
+			});
+			resolve(result);
+		})
+	}
+
+	const doFindMemberInMains = function(mains, members) {
+		return new Promise(function(resolve, reject) {
+			let	promiseList = new Promise(async function(resolve2, reject2){
+				for (let i = 0; i < members.length; i++) {
+					let memberItem = members[i];
+					let result = await mains.filter((item)=>{
+						if (item.id == memberItem.id) {
+							return item;
+						}
+					});
+					if (result.length == 0) {
+						mains.push(memberItem);
+					}
+				}
+				setTimeout(()=>{
+          resolve2(mains);
+        }, 100);
+			});
+			Promise.all([promiseList]).then((ob)=>{
+				resolve(ob[0]);
+			});
+		});
+	}
+
+	const doSelectUrgentMesh = function(scanparts, sumass) {
+		return new Promise(function(resolve, reject) {
+			if (scanparts.length == 1) {
+				resolve(scanparts[0]);
+			} else {
+				let lastTTMinus = 0;
+				let mesh = undefined;
+				let	promiseList = new Promise(async function(resolve2, reject2){
+					for (let i=0; i < scanparts.length; i++) {
+						let sumas = await sumass.find((item)=>{
+							if (item.id == scanparts[i].sumaseId) {
+								return item;
+							}
+						});
+						if (sumas) {
+							let workingStep = sumas.UGType_WorkingStep;
+							let workingStepMinus = Number(workingStep.mn) + (Number(workingStep.hh) * 60) + (Number(workingStep.dd) * 60 * 24);
+							if (workingStepMinus > lastTTMinus) {
+								lastTTMinus = workingStepMinus;
+								mesh = scanparts[i];
+							}
+						} else {
+							mesh = scanparts[0];
+						}
+					}
+					setTimeout(()=>{
+						resolve2(mesh);
+					}, 100);
+				});
+				Promise.all([promiseList]).then((ob)=>{
+					resolve(ob[0]);
+				});
+			}
+		});
+	}
+
+	const doArrangeNewUrgent = function(scanparts, sumass) {
+		return new Promise(function(resolve, reject) {
+			let newUrgentTypes = [];
+			let meshUrgentTypes = [];
+			let	promiseList = new Promise(async function(resolve2, reject2){
+				for (let i = 0; i < scanparts.length; i++) {
+					let majorType = scanparts[i].MajorType;
+					let majors = await doFilterMajorType(sumass, majorType);
+					newUrgentTypes = await doFindMemberInMains(newUrgentTypes, majors);
+					meshUrgentTypes.push(scanparts[i]);
+				}
+				setTimeout(async()=>{
+					let mesh = await doSelectUrgentMesh(meshUrgentTypes, sumass);
+					meshUrgentTypes = [mesh];
+					resolve2({newUrgentTypes, meshUrgentTypes});
+				}, 100);
+			});
+			Promise.all([promiseList]).then((ob)=>{
+				resolve(ob[0]);
+			});
+		});
+	}
+
   return {
 		/* Constant share */
 		caseReadWaitStatus,
@@ -4135,7 +4427,11 @@ module.exports = function ( jq ) {
 		doCheckOutTime,
 		doCallPriceChart,
 		doCreateOpenCaseData,
-		doAddNotifyCustomStyle
+		doAddNotifyCustomStyle,
+		doFilterMajorType,
+		doFindMemberInMains,
+		doSelectUrgentMesh,
+		doArrangeNewUrgent
 	}
 }
 
@@ -8962,10 +9258,12 @@ module.exports = function ( jq ) {
 	}
 
 	const doResetPingCounter = function(){
-		if ((wsm.readyState == 0) || (wsm.readyState == 1)){
-			wsm.send(JSON.stringify({type: 'reset', what: 'pingcounter'}));
-		} else {
-			$.notify("คุณไม่อยู่ในสถานะการเชื่อมต่อกับเซิร์ฟเวอร์ โปรดรีเฟรช (F5) หรือ Logout แล้ว Login ใหม่ อีกครั้ง", "warn");
+		if (wsm) {
+			if ((wsm.readyState == 0) || (wsm.readyState == 1)){
+				wsm.send(JSON.stringify({type: 'reset', what: 'pingcounter'}));
+			} else {
+				//$.notify("คุณไม่อยู่ในสถานะการเชื่อมต่อกับเซิร์ฟเวอร์ โปรดรีเฟรช (F5) หรือ Logout แล้ว Login ใหม่ อีกครั้ง", "warn");
+			}
 		}
 	}
 
@@ -8973,7 +9271,7 @@ module.exports = function ( jq ) {
 		if ((wsm.readyState == 0) || (wsm.readyState == 1)){
 			wsm.send(JSON.stringify({type: 'set', what: 'screenstate', value: state}));
 		} else {
-			$.notify("คุณไม่อยู่ในสถานะการเชื่อมต่อกับเซิร์ฟเวอร์ โปรดรีเฟรช (F5) หรือ Logout แล้ว Login ใหม่ อีกครั้ง", "warn");
+			//$.notify("คุณไม่อยู่ในสถานะการเชื่อมต่อกับเซิร์ฟเวอร์ โปรดรีเฟรช (F5) หรือ Logout แล้ว Login ใหม่ อีกครั้ง", "warn");
 		}
 	}
 
@@ -9073,6 +9371,10 @@ module.exports = function ( jq ) {
 			let eventName = 'triggerupdatedicom'
 			let triggerData = {dicom : data.dicom, result: data.result};
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: triggerData}});
+			document.dispatchEvent(event);
+		} else if (data.type == 'caseeventlog') {
+			let eventName = 'caseeventlog';
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.data}});
 			document.dispatchEvent(event);
 		}
 	}
@@ -9246,6 +9548,7 @@ module.exports = function ( jq, wsm ) {
     let data = JSON.parse(msgEvt.data);
     console.log(data);
     if (data.type !== 'test') {
+			/*
       let masterNotify = localStorage.getItem('masternotify');
       let MasterNotify = JSON.parse(masterNotify);
       if (MasterNotify) {
@@ -9255,6 +9558,7 @@ module.exports = function ( jq, wsm ) {
         MasterNotify.push({notify: data, datetime: new Date(), status: 'new'});
       }
       localStorage.setItem('masternotify', JSON.stringify(MasterNotify));
+			*/
     }
     if (data.type == 'test') {
       $.notify(data.message, "success");
@@ -9374,6 +9678,10 @@ module.exports = function ( jq, wsm ) {
 		} else if (data.type == 'rezip') {
 			let eventName = 'triggerrezip';
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: {studyID: data.studyID, dicomZipFilename: data.dicomZipFilename}}});
+			document.dispatchEvent(event);
+		} else if (data.type == 'caseeventlog') {
+			let eventName = 'caseeventlog';
+			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.data}});
 			document.dispatchEvent(event);
     } else {
 			console.log('Nothing Else');
@@ -20957,7 +21265,7 @@ const doLoadMainPage = function(){
   $('head').append('<script src="' + jquerySimpleUploadUrl + '"></script>');
 
   $('head').append('<script src="' + patientHistoryPluginUrl + '?t=x3x4xm"></script>');
-  $('head').append('<script src="' + countdownclockPluginUrl + '?t=marmix"></script>');
+  $('head').append('<script src="' + countdownclockPluginUrl + '?t=marksix"></script>');
   $('head').append('<script src="' + scanpartPluginUrl + '?t=mix6ox"></script>');
   $('head').append('<script src="' + customUrgentPlugin + '"></script>');
   $('head').append('<script src="' + controlPagePlugin + '"></script>');
@@ -20987,6 +21295,8 @@ const doLoadMainPage = function(){
   document.addEventListener("triggercasemisstake", submain.onCaseMisstakeNotifyTrigger);
   document.addEventListener("triggernewreport", submain.onNewReportTrigger);
   document.addEventListener("triggerrezip", submain.onRezipTrigger);
+  document.addEventListener("caseeventlog", submain.onCaseEventLogTrigger);
+  document.addEventListener("clientreconnecttrigger", onClientReconnectTrigger);
 
   let mainFile= '../form/main-fix.html';
   let menuFile = '../form/menu-fix.html';
@@ -21108,9 +21418,11 @@ const doLoadMainPage = function(){
 				common.doSaveQueryDicom(data);
 				dicom.doLoadDicomFromOrthanc();
 			});
-
-      submain.doTriggerDicomFilterForm();
-
+      /*
+      $(document).on('opendicomfilter', (evt, data)=>{
+      	submain.doTriggerDicomFilterForm(evt, data);
+      });
+      */
       submain.doAddNotifyCustomStyle();
 
       doInitDefualPage();
@@ -21153,6 +21465,16 @@ const doTriggerLoadDicom = function(){
 const actionAfterSetupCounter = function(){
   $('#HomeMainCmd').click();
   doTriggerLoadDicom();
+}
+
+const onClientReconnectTrigger = function(evt){
+  let trigerData = evt.detail.data;
+  let userdata = JSON.parse(localStorage.getItem('userdata'));
+  wsl = util.doConnectWebsocketLocal(userdata.username);
+  setTimeout(()=>{
+    wsl.send(JSON.stringify({type: 'client-reconnect'}));
+    //localStorage.removeItem('masternotify');
+  },2100);
 }
 
 },{"../../case/mod/case.js":3,"../../case/mod/casecounter.js":4,"../../case/mod/commonlib.js":5,"../../case/mod/consult.js":6,"../../case/mod/portal-lib.js":12,"../../case/mod/urgentstd.js":15,"../../case/mod/userinfolib.js":16,"../../case/mod/utilmod.js":18,"./mod/dicom.js":25,"./mod/submainlib.js":26,"jquery":27}],24:[function(require,module,exports){
@@ -21255,10 +21577,11 @@ module.exports = function ( jq ) {
     }
   }
 
-  function doControlShowCustomUrget(tableWrapper, ugValue, defualtValue, ugentId) {
-		common.doCallSelectUrgentType(ugValue).then((ugtypeRes)=>{
-			let ugentId = ugtypeRes.Records[0].id;
-			let acceptStep = JSON.parse(ugtypeRes.Records[0].UGType_AcceptStep);
+  function doControlShowCustomUrget(tableWrapper, ugdata, defualtValue, ugentId) {
+		//common.doCallSelectUrgentType(ugValue).then((ugtypeRes)=>{
+			//let ugentId = ugtypeRes.Records[0].id;
+			//let acceptStep = JSON.parse(ugtypeRes.Records[0].UGType_AcceptStep);
+			let acceptStep = ugdata.UGType_AcceptStep;
 			let acceptText = common.doDisplayCustomUrgentResult(acceptStep.dd, acceptStep.hh, acceptStep.mn, defualtValue.createdAt);
 
 			let workingStepFrom = (acceptStep.dd * 24 * 60 * 60 * 1000) + (acceptStep.hh * 60 * 60 * 1000) + (acceptStep.mn * 60 * 1000);
@@ -21275,7 +21598,8 @@ module.exports = function ( jq ) {
 
 			let wkFromDateTime = new Date(y, m, d, h, mn);
 
-			let workingStep = JSON.parse(ugtypeRes.Records[0].UGType_WorkingStep);
+			//let workingStep = JSON.parse(ugtypeRes.Records[0].UGType_WorkingStep);
+			let workingStep = ugdata.UGType_WorkingStep;
 			let workingText = common.doDisplayCustomUrgentResult(workingStep.dd, workingStep.hh, workingStep.mn, wkFromDateTime);
 			let ugData = {Accept: acceptStep, Working: workingStep};
 			$('#CustomUrgentPlugin').empty();
@@ -21303,7 +21627,7 @@ module.exports = function ( jq ) {
 					$(tableWrapper).find('#Urgenttype').prop('disabled', true);
 				}
 			}
-		});
+		//});
 	}
 
 	function doOpenCustomUrgentPopup(tableWrapper, mode, defualtValue, ugentId, urgentData) {
@@ -21356,12 +21680,14 @@ module.exports = function ( jq ) {
 		return new Promise(function(resolve, reject) {
 			let urgentType = $('.mainfull').find('#Urgenttype').val();
 			//console.log(urgentType);
-			let urgenttypeId = defualtValue.urgent;
+			let urgenttypeId = Number(defualtValue.urgent);
 			//console.log(urgenttypeId);
 			if (urgentType) {
-				urgenttypeId = urgentType;
+				urgenttypeId = Number(urgentType);
 			}
+			let sumaseId = urgenttypeId
 			//console.log(urgenttypeId);
+			//console.log(sumaseId);
 			if (!urgenttypeId) {
 				let content = $('<div></div>');
 				$(content).append($('<p>ค่าความเร่งด่วนไม่ถูกต้อง โปรดแก้ไข</p>'));
@@ -21394,7 +21720,7 @@ module.exports = function ( jq ) {
 						scanpartItem.push(thisScanPart);
 					}
 					setTimeout(()=>{
-	          resolve2($(scanpartItem));
+	          resolve2(scanpartItem);
 	        }, 500);
 				});
 				Promise.all([promiseList]).then((ob)=>{
@@ -21433,7 +21759,7 @@ module.exports = function ( jq ) {
 					let optionLocalSave = option;
 					optionLocalSave.scanpart.userId = userdata.userId;
 					localStorage.setItem('rememberwantsavescanpart', JSON.stringify(optionLocalSave));
-			    let newCase = {patientNameTH, patientNameEN, patientHistory, scanpartItems, studyID, patientSex, patientAge, patientBirthDate, patientRights, patientCitizenID, price, hn, acc, department, drOwner, bodyPart, scanPart, drReader, urgenttypeId, detail, mdl, studyDesc, protocalName, manufacturer, stationName, studyInstanceUID, radioId, option: option};
+			    let newCase = {patientNameTH, patientNameEN, patientHistory, scanpartItems, studyID, patientSex, patientAge, patientBirthDate, patientRights, patientCitizenID, price, hn, acc, department, drOwner, bodyPart, scanPart, drReader, urgenttypeId, sumaseId, detail, mdl, studyDesc, protocalName, manufacturer, stationName, studyInstanceUID, radioId, option: option};
 			    resolve(newCase);
 				});
 			}
@@ -21458,7 +21784,6 @@ module.exports = function ( jq ) {
 		let rqParams = {};
 		let userdata = JSON.parse(localStorage.getItem('userdata'));
 		let options = JSON.parse(localStorage.getItem('caseoptions'));
-
 		/*
 		let hospitalId = userdata.hospitalId;
 		let apiUrl = '/api/cases/options/' + hospitalId;
@@ -21761,6 +22086,7 @@ module.exports = function ( jq ) {
 						if ($(nextTable).prop('id')) {
 							$(nextTable).show();
 						} else {
+							//console.log(scanparts);
 							doCreateNewCaseSecondStep(defualtValue, options, scanparts);
 						}
 					}
@@ -21950,25 +22276,44 @@ module.exports = function ( jq ) {
     tableCell = $('<div style="display: table-cell;">ประเภทความเร่งด่วน</div>');
     $(tableCell).appendTo($(tableRow));
 
-    if (defualtValue.urgenttype === 'standard') {
-      tableCell = $('<div style="display: table-cell; padding: 5px;"><select id="Urgenttype"></select></div>');
-      options.urgents.forEach((item) => {
-        $(tableCell).find('#Urgenttype').append($('<option value="' + item.Value + '">' + item.DisplayText + '</option>'));
-      });
-      $(tableCell).find('#Urgenttype').append($('<option value="-1">กำหนดเวลารับผลอ่าน</option>'));
+		console.log(options);
+		console.log(scanparts);
 
-      $(tableCell).find('#Urgenttype').on('change', (evt) => {
-        let ugValue = $(tableWrapper).find('#Urgenttype').val();
+		let caseUrgentType = await common.doArrangeNewUrgent(scanparts, options.sumass);
+
+		console.log(caseUrgentType);
+
+    if (defualtValue.urgenttype === 'standard') {
+			let ugTypeSelector = $('<select id="Urgenttype"></select>');
+      tableCell = $('<div style="display: table-cell; padding: 5px;"></div>').append($(ugTypeSelector));
+			$(ugTypeSelector).append($('<option value="0">ระบุประเภทความเร่งด่วน</option>'));
+      //options.urgents.forEach((item) => {
+			let newUrgentTypes = caseUrgentType.newUrgentTypes;
+			newUrgentTypes.forEach((item) => {
+        //$(tableCell).find('#Urgenttype').append($('<option value="' + item.Value + '">' + item.DisplayText + '</option>'));
+				let newOption = $('<option value="' + item.id + '">' + item.UGType_Name + '</option>');
+				$(newOption).data('ugdata', item);
+				$(ugTypeSelector).append($(newOption));
+      });
+      //$(tableCell).find('#Urgenttype').append($('<option value="-1">กำหนดเวลารับผลอ่าน</option>'));
+			$(ugTypeSelector).append($('<option value="-1">กำหนดเวลารับผลอ่าน</option>'));
+
+      //$(tableCell).find('#Urgenttype').on('change', (evt) => {
+			$(ugTypeSelector).on('change', (evt) => {
+				var ugdata = $(ugTypeSelector).find(":selected").data('ugdata');
+				console.log(ugdata);
+        let ugValue = $(ugTypeSelector).find(":selected").val();
+				console.log(ugValue);
         if (!ugValue) {
           ugValue = $(tableCell).find('#Urgenttype').val();
         }
         if (ugValue == -1) {
           let eventData = {name: 'usecustomurgent'};
-          $(tableWrapper).find('#Urgenttype').trigger('usecustomurgent', [eventData]);
+          $(ugTypeSelector).trigger('usecustomurgent', [eventData]);
         } else {
           if (ugValue > 0) {
             let ugentId = ugValue;
-            doControlShowCustomUrget(tableWrapper, ugValue, defualtValue, ugentId)
+            doControlShowCustomUrget(tableWrapper, ugdata, defualtValue, ugentId)
             if (defualtValue.urgenttype === 'custom') {
               $('#Urgenttype').remove();
             }
@@ -21976,18 +22321,28 @@ module.exports = function ( jq ) {
         }
       });
 
-      if ((defualtValue.urgent) && (defualtValue.urgent > 0)) {
-        $(tableCell).find('#Urgenttype').val(defualtValue.urgent);
-        $(tableCell).find('#Urgenttype').change();
-      } else {
-        $(tableCell).find('#Urgenttype').prepend($('<option value="0">ระบุประเภทความเร่งด่วน</option>'));
-        $(tableCell).find('#Urgenttype').val(0);
-      }
+      //if ((defualtValue.urgent) && (defualtValue.urgent > 0)) {
+			console.log(caseUrgentType.meshUrgentTypes);
+			setTimeout(()=>{
+				if ((caseUrgentType.meshUrgentTypes) && (caseUrgentType.meshUrgentTypes.length > 0)) {
+					let ugSelected = caseUrgentType.meshUrgentTypes[0].sumaseId;
+	        //$(tableCell).find('#Urgenttype').val(defualtValue.urgent);
+					$(ugTypeSelector).val(ugSelected).change();
+	      } else {
+	        //$(tableCell).find('#Urgenttype').prepend($('<option value="0">ระบุประเภทความเร่งด่วน</option>'));
+	        //$(tableCell).find('#Urgenttype').val(0);
+					$(ugTypeSelector).val(0);
+	      }
+			}, 400);
     } else if (defualtValue.urgenttype === 'custom') {
       tableCell = $('<div style="display: table-cell; padding: 5px;"></div>');
       let ugValue = defualtValue.urgent;
-      let ugentId = ugValue;
-      doControlShowCustomUrget(tableWrapper, ugValue, defualtValue, ugentId);
+			let ugtypeRes = common.doCallSelectUrgentType(ugValue);
+			let ugentId = ugtypeRes.Records[0].id;
+			let acceptStep = JSON.parse(ugtypeRes.Records[0].UGType_AcceptStep);
+			let workingStep = JSON.parse(ugtypeRes.Records[0].UGType_WorkingStep);
+			let ugdata = {UGType_AcceptStep: acceptStep, UGType_WorkingStep: workingStep};
+      doControlShowCustomUrget(tableWrapper, ugdata, defualtValue, ugentId);
     }
 
     $('<div id="CustomUrgentPlugin"></div>').appendTo($(tableCell));
@@ -22217,7 +22572,7 @@ module.exports = function ( jq ) {
 
 				console.log(defualtValue);
 				if (defualtValue.studyTags) {
-		      rqParams = {data: caseData, hospitalId: hospitalId, userId: userId, patientId: patientId, urgenttypeId: urgenttypeId, cliamerightId: cliamerightId, option: newCaseData.option, studyTags: defualtValue.studyTags};
+		      rqParams = {data: caseData, hospitalId: hospitalId, userId: userId, patientId: patientId, urgenttypeId: urgenttypeId, cliamerightId: cliamerightId, option: newCaseData.option, studyTags: defualtValue.studyTags, sumaseId: newCaseData.sumaseId};
 					console.log(rqParams);
 
 		      let caseRes = await common.doCallApi('/api/cases/add', rqParams);
@@ -22383,6 +22738,7 @@ module.exports = function ( jq ) {
       let userItemPerPage = userDefualtSetting.itemperpage;
   		let queryString = localStorage.getItem('dicomfilter');
       let localOrthancRes = await common.doCallLocalApi('/api/orthanc/study/list/lastmonth', {});
+			//let localOrthancRes = await common.doCallLocalApi('/api/orthanc/study/list/today', {});
 
       if (localOrthancRes.status.code == 200) {
         doCreateDicomListTitlePage(queryString);
@@ -22428,7 +22784,7 @@ module.exports = function ( jq ) {
               $(".mainfull").find('#ResultView').empty().append($(dicomView));
               $('body').loading('stop');
   						let eventData = {userId: userdata.id};
-  						$(".mainfull").trigger('opendicomfilter', [eventData]);
+  						//$(".mainfull").trigger('opendicomfilter', [eventData]);
             }
           };
           let navigatoePage = $(navigBarBox).controlpage(navigBarOption);
@@ -22464,6 +22820,8 @@ module.exports = function ( jq ) {
 			const table = $('<div style="display: table; width: 100%; border-collapse: collapse;"></div>');
 			const tableHeader = doCreateDicomHeaderRow();
 			$(tableHeader).appendTo($(table));
+			
+			/*
 			const dicomFilterForm = common.doCreateDicomFilterForm((filterKey)=>{
 				console.log(filterKey);
 				common.doSaveQueryDicom(filterKey);
@@ -22471,6 +22829,7 @@ module.exports = function ( jq ) {
 			});
 			$(dicomFilterForm).appendTo($(table));
 			$(dicomFilterForm).hide();
+			*/
 
 			const promiseList = new Promise(function(resolve2, reject2){
 				for (let i=0; i < dj.length; i++) {
@@ -22865,30 +23224,28 @@ module.exports = function ( jq ) {
   }
 
   const doTriggerDicomFilterForm = function(){
-    $(document).on('opendicomfilter', (evt, data)=>{
-      let queryString = localStorage.getItem('dicomfilter');
-      let queryDicom = JSON.parse(queryString);
-      let filterKey = queryDicom.Query;
-      $(".mainfull").find('#DicomFilterForm').show();
-      if ((filterKey.StudyFromDate !== '') && (filterKey.StudyFromDate !== '*')) {
-        $('#StudyFromDateInput').val(filterKey.StudyFromDate);
-      }
-      if ((filterKey.StudyToDate !== '') && (filterKey.StudyToDate !== '*')) {
-        $('#StudyToDateInput').val(filterKey.StudyToDate);
-      }
-      if ((filterKey.PatientName !== '') && (filterKey.PatientName !== '*')) {
-        $('#PatientNameInput').val(filterKey.PatientName);
-      }
-      if ((filterKey.PatientHN !== '') && (filterKey.PatientHN !== '*')) {
-        $('#PatientHNInput').val(filterKey.PatientHN);
-      }
-      if ((filterKey.Modality !== '') && (filterKey.Modality !== '*')) {
-        $('#ModalityInput').val(filterKey.Modality);
-      }
-      if ((filterKey.ScanPart !== '') && (filterKey.ScanPart !== '*')) {
-        $('#ScanPartInput').val(filterKey.ScanPart);
-      }
-    });
+    let queryString = localStorage.getItem('dicomfilter');
+    let queryDicom = JSON.parse(queryString);
+    let filterKey = queryDicom.Query;
+    $(".mainfull").find('#DicomFilterForm').show();
+    if ((filterKey.StudyFromDate !== '') && (filterKey.StudyFromDate !== '*')) {
+      $('#StudyFromDateInput').val(filterKey.StudyFromDate);
+    }
+    if ((filterKey.StudyToDate !== '') && (filterKey.StudyToDate !== '*')) {
+      $('#StudyToDateInput').val(filterKey.StudyToDate);
+    }
+    if ((filterKey.PatientName !== '') && (filterKey.PatientName !== '*')) {
+      $('#PatientNameInput').val(filterKey.PatientName);
+    }
+    if ((filterKey.PatientHN !== '') && (filterKey.PatientHN !== '*')) {
+      $('#PatientHNInput').val(filterKey.PatientHN);
+    }
+    if ((filterKey.Modality !== '') && (filterKey.Modality !== '*')) {
+      $('#ModalityInput').val(filterKey.Modality);
+    }
+    if ((filterKey.ScanPart !== '') && (filterKey.ScanPart !== '*')) {
+      $('#ScanPartInput').val(filterKey.ScanPart);
+    }
   }
 
 	const doCreateRegisterVoIP = function(userdata){
@@ -23027,6 +23384,19 @@ module.exports = function ( jq ) {
 		$('body').loading('stop');
 	}
 
+	const onCaseEventLogTrigger = function(evt) {
+		let trigerData = evt.detail.data;
+		let caseTable = $('body').find('#CaseTable');
+		if (caseTable) {
+			let caseStatusCells = $(caseTable).find('.case-status-cell');
+			for (let i=0; i < caseStatusCells.length; i++) {
+				$(caseStatusCells[i]).trigger('caseeventlog', [trigerData]);
+			}
+		} else {
+			console.log('not on case page.')
+		}
+	}
+
 	return {
     showScanpartAux,
     doAddNotifyCustomStyle,
@@ -23039,7 +23409,8 @@ module.exports = function ( jq ) {
 		onNewDicomTransferTrigger,
 		onUpdateDicomTransferTrigger,
 		onNewReportTrigger,
-		onRezipTrigger
+		onRezipTrigger,
+		onCaseEventLogTrigger
   }
 }
 

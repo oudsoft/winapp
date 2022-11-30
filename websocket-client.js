@@ -290,6 +290,10 @@ function RadconWebSocketClient (arg, log) {
 		$this.connection.send(JSON.stringify(data));
 	}
 
+	this.reconnect = function() {
+		client.connect($this.connectUrl);
+	}
+
 	this.client = client;
 
 	client.connect(this.connectUrl/*, 'echo-protocol'*/);

@@ -142,7 +142,7 @@ function RadconWebSocketServer (arg, log, wsClient) {
 						ws.send(JSON.stringify({type: 'clientreadystate', data: {state: clientStatus}}));
 					break;
 					case "client-reconnect":
-						$this.cloudSocket.reconnct();
+						$this.cloudSocket.reconnect();
 					break;
 					case "client-sendbinary":
 						let zipDir = path.join(__dirname, '/public/img/usr/zip');
