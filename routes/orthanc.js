@@ -518,6 +518,47 @@ module.exports = (app, wsServer, wsClient, monitor) => {
     res.status(200).send({status: {code: 200}, result: result});
   });
 
+  app.post('/orthanc/add/attach/file', async function(req, res) {
+    let caseId = req.body.caseId;
+    let patientNameEN = req.body.PatientNameEN;
+    let files = await dicom.doSeekAttchFiles();
+    log.info('Add Attach File => ' + JSON.stringify(files));
+    if (files.length > 0) {
+      let fetchResults = [];
+      const promiseList = new Promise(async function(resolve2, reject2) {
+        for (let i=0; i < files.length; i++) {
+          let file = files[i];
+          let res = await dicom.doChangeAttachFileName(file, patientNameEN, i);
+          let attachFileName = res.file;
+          log.info("Start Add Upload Attach " + i + '=>' + file + '=> ' + attachFileName);
+          let fetchRes = await dicom.doFetchZipFile(attachFileName);
+          let zipPath = process.env.LOCAL_ATTACH_DIR + attachFileName;
+          await dicom.doDeleteFile(zipPath);
+          log.info("Add Done => https://radconnext.info" + fetchRes.link);
+          fetchResults.push(fetchRes);
+        }
+        setTimeout(()=> {
+          resolve2(fetchResults);
+        },800);
+      });
+      Promise.all([promiseList]).then((ob)=>{
+        let params = {caseId: caseId, Case_PatientHRLinks: ob[0]};
+        let rqParams = {
+          body: params,
+          url: 'https://radconnext.info/api/cases/append/patienthrlink',
+          method: 'post'
+        }
+        util.proxyRequest(rqParams).then(async(proxyRes)=>{
+          log.info('proxyRes=>'+ JSON.stringify(proxyRes));
+          let prxRes = JSON.parse(proxyRes.res.body)
+          res.status(200).send({status: {code: 200}, newHRs: ob[0], result: prxRes.result});
+        });
+      });
+    } else {
+      res.status(200).send({status: {code: 200}, result: []});
+    }
+  });
+
   return {
     doCallStudy,
     doCallSeries

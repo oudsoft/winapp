@@ -1919,6 +1919,21 @@ module.exports = function ( jq ) {
 					}
 				}
 
+				if ([1, 2, 8, 9].includes(incidents[i].case.casestatus.id)) {
+					let attachPlusButton = $('<img class="pacs-command" data-toggle="tooltip" src="/images/attach-plus-icon.png" title="Add New Attach Zip File"/>');
+					$(attachPlusButton).click(async function() {
+						let patientNameEN = incidents[i].case.patient.Patient_NameEN + ' ' + incidents[i].case.patient.Patient_LastNameEN;
+						let dicomUrl = '/api/orthanc/add/attach/file';
+						let rqParams = {caseId: incidents[i].case.id, PatientNameEN: patientNameEN};
+						$('body').loading('start');
+						$.post(dicomUrl, rqParams, function(response){
+							console.log(response);
+							$('body').loading('stop');
+						});
+					});
+					$(attachPlusButton).appendTo($(operationCmdBox));
+				}
+
 				$(operationCol).append($(toggleMoreCmd)).prepend($(moreCmdBox));
 				let moreChild = $(moreCmdBox).find('.pacs-command');
 				if ($(moreChild).length > 0) {
@@ -2482,7 +2497,6 @@ module.exports = function ( jq ) {
 								$(box).empty();
 								$(box).append($('<div></div>').text('แจ้งรังสีแพทย์รับเคสทาง Line แล้ว'));
 								let callBox = $(box).find('#CallTrigger');
-								console.log(callBox);
 								console.log(callBox.length);
 								if (callBox.length == 0) {
 									if (clockCountdownDiv) {
@@ -3611,7 +3625,7 @@ module.exports = function ( jq ) {
 			let username = userdata.username;
 			let params = {hospitalId: hospitalId, seriesId: seriesId, username: username, instanceList: instanceList};
 			let apiurl = '/api/orthancproxy/create/preview';
-			let orthancRes = await apiconnector.doCallApi(apiurl, params)
+			let orthancRes = await apiconnector.doCallApi(apiurl, params);
 			resolve(orthancRes);
 		});
 	}
@@ -4109,6 +4123,7 @@ module.exports = function ( jq ) {
 	}
 
 	const onSimpleEditorPaste = function(evt){
+		//console.log(evt);
 		let pathElems = evt.originalEvent.path;
 		let simpleEditorPath = pathElems.find((path)=>{
 			if (path.className === 'jqte_editor') {
@@ -4120,7 +4135,9 @@ module.exports = function ( jq ) {
 			evt.preventDefault();
 			let clipboardData = evt.originalEvent.clipboardData || window.clipboardData;
 			let textPastedData = clipboardData.getData('text');
+			//console.log(textPastedData);
 			let htmlPastedData = clipboardData.getData('text/html');
+			//console.log(htmlPastedData);
 			let htmlFormat = htmlformat(htmlPastedData);
 
 			let caseData = $('#SimpleEditorBox').data('casedata');
