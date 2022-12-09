@@ -25,6 +25,7 @@ function RadconWebSocketServer (arg, log, wsClient) {
 		wssPath = wssPath.split('/');
 		log.info(wssPath);
 		ws.id = wssPath[2];
+		ws.counterping = 0;
 		ws.send(JSON.stringify({type: 'test', message: ws.id + ', You have Connected local websocket success.'}));
 
 		ws.on('message', function (message) {
@@ -174,8 +175,11 @@ function RadconWebSocketServer (arg, log, wsClient) {
 		ws.isAlive = true;
 
 		ws.on('pong', () => {
-			//log.info(ws.id + ' => On Pong');
+			let clientConnection = wsClient.connection;
+			let currentState = {connected: clientConnection.connected, state: clientConnection.state};
+			ws.counterping += 1;
 			ws.isAlive = true;
+			ws.send(JSON.stringify({type: 'ping', counterping: ws.counterping, form: 'local', clientSocketState: currentState, datetime: new Date()}));
 		});
 
 		ws.on('close', async function(client, req) {
@@ -196,7 +200,7 @@ function RadconWebSocketServer (arg, log, wsClient) {
 			if (!ws.isAlive) return ws.terminate();
 			ws.ping(null, false, true);
 		});
-	}, 85000);
+	}, 60000);
 
 	this.removeNoneActiveSocket = function(wsId){
 		return new Promise(async function(resolve, reject) {
@@ -227,7 +231,7 @@ function RadconWebSocketServer (arg, log, wsClient) {
 			await $this.clients.forEach((client) =>{
 				client.send(JSON.stringify(notify));
 			});
-			resolve();
+			resolve($this.clients);
 		});
 	}
 

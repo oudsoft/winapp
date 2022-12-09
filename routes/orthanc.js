@@ -404,10 +404,17 @@ module.exports = (app, wsServer, wsClient, monitor) => {
     let caseId = req.body.caseId;
 
     let convertResult = undefined;
-    let newHrPatientFiles = await dicom.doDownloadHrPatientFiles(hrPatientFiles);
+    let newHrPatientFiles = [];
+    newHrPatientFiles = await dicom.doDownloadHrPatientFiles(hrPatientFiles);
     log.info('newHrPatientFiles=>' + JSON.stringify(newHrPatientFiles));
     if (newHrPatientFiles.length > 0) {
-      convertResult = await dicom.doConvertJPG2DCM(newHrPatientFiles, studyTags, oldHrPatientFiles);
+      log.info('oldHrPatientFiles=>' + JSON.stringify(oldHrPatientFiles));
+      if ((oldHrPatientFiles) && (oldHrPatientFiles.length > 0)) {
+        let clearResults = await dicom.doRemoveOldImages(oldHrPatientFiles);
+        log.info('clearResults=>' + JSON.stringify(clearResults));
+      }
+
+      convertResult = await dicom.doConvertJPG2DCM(newHrPatientFiles, studyTags);
       res.status(200).send({status: {code: 200}, result: {HrPatientFiles: newHrPatientFiles, convert: convertResult}});
     } else {
       res.status(200).send({status: {code: 200}});

@@ -1580,6 +1580,7 @@ module.exports = function ( jq ) {
 			if ((caseScanparts) && (caseScanparts.length > 0)) {
 				yourSelectScanpartContent = await common.doRenderScanpartSelectedAbs(caseScanparts);
 			}
+			//console.log(caseItem);
 			let caseUG = caseItem.case.urgenttype.UGType_Name;
 			//let caseREFF = caseItem.Refferal.User_NameTH + ' ' + caseItem.Refferal.User_LastNameTH;
 			let caseRADI = caseItem.Radiologist.User_NameTH + ' ' + caseItem.Radiologist.User_LastNameTH;
@@ -1977,7 +1978,8 @@ module.exports = function ( jq ) {
 			defualtValue.scanpart = response.case.Case_ScanPart;
 			defualtValue.studyTags = response.StudyTags.StudyTags;
 			//let orthancRes = await common.doGetOrthancStudyDicom(defualtValue.studyID);
-			let studyTags = await common.doGetSeriesList(defualtValue.studyID)
+			//let studyTags = await common.doGetSeriesList(defualtValue.studyID)
+			let studyTags = response.StudyTags.StudyTags;
 			let seriesList = studyTags.Series;
 			let patientName = studyTags.PatientMainDicomTags.PatientName;
 			let allSeries = seriesList.length;
@@ -2533,7 +2535,7 @@ module.exports = function ( jq ) {
 								doCallTaskDirect(callUrl, data.caseId).then((clockBox)=>{
 									if (clockBox) {
 										let callBox = $(box).find('#CallTrigger');
-										console.log(callBox);
+										//console.log(callBox);
 										if (callBox.length == 0) {
 											let remark1 = $('<span></span>').text('จะโทรตามภายใน');
 											let remark2 = $('<span></span>').text('นาที').css({'margin-left': '10px'});
@@ -3012,9 +3014,15 @@ module.exports = function ( jq ) {
 
   const pageLineStyle = {'width': '100%', 'border': '2px solid gray', /*'border-radius': '10px',*/ 'background-color': '#ddd', 'margin-top': '4px', 'padding': '2px'};
 	const headBackgroundColor = '#184175';
+	
+	const onSimpleEditorChange = function() {
+		util.doResetPingCounter();
+	}
+
 	const jqteConfig = {format: false, fsize: false, ol: false, ul: false, indent: false, outdent: false,
 		link: false, unlink: false, remove: false, /*br: false,*/ strike: false, rule: false,
-		sub: false, sup: false, left: false, center: false, right: false/*, source: false */
+		sub: false, sup: false, left: false, center: false, right: false /*, source: false
+		change: onSimpleEditorChange */
 	};
 	const modalitySelectItem = ['CR', 'CT', 'MG', 'US', 'MR', 'AX'];
 	const sizeA4Style = {width: '210mm', height: '297mm'};
@@ -8917,7 +8925,7 @@ module.exports = function ( jq ) {
 module.exports = function ( jq ) {
 	const $ = jq;
 
-	let wsm;
+	let wsm, wsl;
 
 	const formatDateStr = function(d) {
 		var yy, mm, dd;
@@ -9292,7 +9300,8 @@ module.exports = function ( jq ) {
 		}
 	}
 
-	const doConnectWebsocketMaster = function(username, usertype, hospitalId, connecttype){
+	const doConnectWebsocketMaster = function(username, usertype, hospitalId, connecttype, wsl){
+		wsl = wsl;
 	  const hostname = window.location.hostname;
 		const protocol = window.location.protocol;
 	  const port = window.location.port;
@@ -9319,7 +9328,7 @@ module.exports = function ( jq ) {
 		//console.log(usertype);
 
 		if ((usertype == 1) || (usertype == 2) || (usertype == 3)) {
-			const wsmMessageHospital = require('./websocketmessage.js')($, wsm);
+			const wsmMessageHospital = require('./websocketmessage.js')($, wsm, wsl);
 			wsm.onmessage = wsmMessageHospital.onMessageHospital;
 		} else if (usertype == 4) {
 			const wsmMessageRedio = require('../../radio/mod/websocketmessage.js')($, wsm);
@@ -9330,7 +9339,14 @@ module.exports = function ( jq ) {
 		}
 
 	  wsm.onclose = function(event) {
-			//console.log("Master WebSocket is closed now. with  event:=> ", event);
+			setTimeout(()=>{
+				if ((usertype == 1) || (usertype == 2) || (usertype == 3)) {
+					window.location.reload();
+				} else if (usertype == 4) {
+					doConnectWebsocketMaster(username, usertype, hospitalId, connecttype, wsl);
+				}
+				return false;
+			}, 60800);
 		};
 
 		wsm.onerror = function (err) {
@@ -9342,6 +9358,10 @@ module.exports = function ( jq ) {
 
 	const wslOnClose = function(event) {
 		console.log("Local WebSocket is closed now. with  event:=> ", event);
+		setTimeout(()=>{
+			window.location.reload();
+			return false;
+		}, 60800);
 	}
 
 	const wslOnError = function (err) {
@@ -9355,19 +9375,26 @@ module.exports = function ( jq ) {
 	const wslOnMessage = function (msgEvt) {
 		let data = JSON.parse(msgEvt.data);
 		console.log(data);
-		if (data.type !== 'test') {
-			let localNotify = localStorage.getItem('localnotify');
-			let LocalNotify = JSON.parse(localNotify);
-			if (LocalNotify) {
-				LocalNotify.push({notify: data, datetime: new Date(), status: 'new'});
-			} else {
-				LocalNotify = [];
-				LocalNotify.push({notify: data, datetime: new Date(), status: 'new'});
-			}
-			localStorage.setItem('localnotify', JSON.stringify(LocalNotify));
-		}
+		let userdata = JSON.parse(localStorage.getItem('userdata'));
 		if (data.type == 'test') {
 			$.notify(data.message, "success");
+		} else if (data.type == 'ping') {
+			wsl.clientSocketState = data.clientSocketState;
+			let modPingCounter = Number(data.counterping) % 10;
+			if (modPingCounter == 0) {
+				wsl.send(JSON.stringify({type: 'pong', myconnection: (userdata.id + '/' + userdata.username + '/' + userdata.hospitalId)}));
+			}
+			if (!(data.clientSocketState.connected)) {
+				let ms = 60;
+				setTimeout(()=>{
+					let callUrl = '/api/client/api/connect/cloud/reconnect';
+					let params = {};
+					$.get(callUrl, params).then((response) => {
+						console.log(response);
+					});
+				}, (ms*1000));
+				doCreateWebSocketRetry(ms)
+			}
 		} else if (data.type == 'result') {
 			$.notify(data.message, "success");
 		} else if (data.type == 'notify') {
@@ -9393,6 +9420,15 @@ module.exports = function ( jq ) {
 			let eventName = 'caseeventlog';
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.data}});
 			document.dispatchEvent(event);
+		} else if (data.type == 'web-reconnect-cloud') {
+			let userdata = JSON.parse(localStorage.getItem('userdata'));
+			doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
+		} else if (data.type == 'web-disconnect-cloud') {
+			if (wsm) {
+				wsm.close();
+			}
+		} else if (data.type == 'web-connect-cloud-state') {
+
 		}
 	}
 
@@ -9497,6 +9533,37 @@ module.exports = function ( jq ) {
 	});
 	*/
 
+	const doCreateWebSocketRetry = function(ms) {
+		let radAlertMsg = $('<div></div>');
+		$(radAlertMsg).append($('<span>ระบบเตรียมทำการเชื่อมต่อใหม่อัตโนมัติ</span>'));
+		let milliSecCountDownBox = $('<span></span>').css({'margin-left': '10px'});
+		let milliSecUnitBox = $('<span>วินาที</span>').css({'margin-left': '10px'});
+		$(radAlertMsg).append($('<div><span>ภายใน</span></div>').css({'width': '100%', 'text-align': 'center'}).append($(milliSecCountDownBox)).append($(milliSecUnitBox)));
+		const radconfirmoption = {
+			title: 'การเชื่อมต่อระบบขัดข้อง',
+			msg: $(radAlertMsg),
+			width: '380px',
+			onOk: function(evt) {
+				radConfirmBox.closeAlert();
+			}
+		}
+		let radConfirmBox = $('body').radalert(radconfirmoption);
+		$(radConfirmBox.cancelCmd).hide();
+		setTimeout(()=>{
+			radConfirmBox.closeAlert();
+		}, (ms*1000) - 400);
+		let countDown = 0;
+		$(milliSecCountDownBox).text(ms);
+		let countDownBlink = function() {
+			setTimeout(()=>{
+				countDown += 1;
+				$(milliSecCountDownBox).text(ms-countDown);
+				countDownBlink();
+			}, 1000);
+		}
+		countDownBlink();
+	}
+
 	const fmtStr = function (str) {
 	  var args = [].slice.call(arguments, 1);
 	  var i = 0;
@@ -9541,6 +9608,7 @@ module.exports = function ( jq ) {
 		doCreateDownloadXLSX,
 		doShowLogWindow,
 		//dicomZipSyncWorker,
+		doCreateWebSocketRetry,
 		fmtStr,
 		/*  Web Socket Interface */
 		wsm
@@ -9558,7 +9626,7 @@ module.exports = function ( jq ) {
 }).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],20:[function(require,module,exports){
 /* websocketmessage.js */
-module.exports = function ( jq, wsm ) {
+module.exports = function ( jq, wsm, wsl) {
 	const $ = jq;
   const onMessageHospital = function (msgEvt) {
 		let userdata = JSON.parse(localStorage.getItem('userdata'));
@@ -9700,6 +9768,12 @@ module.exports = function ( jq, wsm ) {
 			let eventName = 'caseeventlog';
 			let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: data.data}});
 			document.dispatchEvent(event);
+		} else if (data.type == 'getsocketstate'){
+			if ((wsm) && (wsl)) {
+				let stateData = {state: wsl.clientSocketState.state};
+				let stateMsg = {type: 'web', from: userdata.username, to: data.from, data: {type: 'socketstate', state: wsl.clientSocketState.state, connected: wsl.clientSocketState.connected}}
+				wsm.send(JSON.stringify(stateMsg));
+			}
     } else {
 			console.log('Nothing Else');
 		}
@@ -21204,7 +21278,7 @@ const consult = require('../../case/mod/consult.js')($);
 const portal = require('../../case/mod/portal-lib.js')($);
 const cases = require('../../case/mod/case.js')($);
 
-var wsm, wsl, sipUA;
+var wsl, sipUA;
 
 $( document ).ready(function() {
   const initPage = function() {
@@ -21218,8 +21292,8 @@ $( document ).ready(function() {
           console.log(userdata);
           if (userdata.usertypeId == 2) {
 			       doLoadMainPage();
-             wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none');
              wsl = util.doConnectWebsocketLocal(userdata.username);
+             util.wsm = util.doConnectWebsocketMaster(userdata.username, userdata.usertypeId, userdata.hospitalId, 'none', wsl);
              //submain.doCreateRegisterVoIP(userdata);
            } else {
              submain.doNotAllowAccessPage();
@@ -21261,7 +21335,7 @@ $( document ).ready(function() {
 });
 
 const doLoadLogin = function(){
-  common.doUserLogout(wsm);
+  common.doUserLogout(util.wsm);
 }
 
 const doLoadMainPage = function(){
@@ -21325,7 +21399,7 @@ const doLoadMainPage = function(){
 				userinfo.doShowUserProfile();
 			});
 			$(document).on('userlogout', (evt, data)=>{
-				common.doUserLogout(wsm);
+				common.doUserLogout(util.wsm);
 			});
 
       $(document).on('gotoportal', (evt, data)=>{
@@ -22504,32 +22578,11 @@ module.exports = function ( jq ) {
       if (patientHistory.length > 0){
         goToSaveCaseStep();
       } else {
-        /*========================================================*/
-        //let pthrna = $('.mainfull').find('#pthrna').prop('checked');
-				/*
-        let caseDetail = $(table).find('#Detail').val();
-        if (caseDetail !== '') {
-          goToSaveCaseStep();
-        } else {
-          let radAlertMsg = $('<div></div>');
-          $(radAlertMsg).append($('<p>ต้องการส่งโดยไม่มีประวัติ</p>'));
-          const radconfirmoption = {
-            title: 'โปรดยืนยัน',
-            msg: $(radAlertMsg),
-            width: '420px',
-            onOk: function(evt) {
-              radConfirmBox.closeAlert();
-              goToSaveCaseStep();
-            },
-            onCancel: function(evt){
-              $.notify('โปรดแนบประวัติผู้ป่วยอย่างน้อย 1 รูป/ไฟล์ หรือ พิมพ์รายละเอียดเพิ่มเติม', 'error');
-              radConfirmBox.closeAlert();
-            }
-          }
-          let radConfirmBox = $('body').radalert(radconfirmoption);
-        }
-				*/
-        $.notify('โปรดแนบประวัติผู้ป่วยอย่างน้อย 1 รูป/ไฟล์', 'error');
+				if (defualtValue.caseId) {
+					goToSaveCaseStep();
+				} else {
+        	$.notify('โปรดแนบประวัติผู้ป่วยอย่างน้อย 1 รูป/ไฟล์', 'error');
+				}
       }
     });
 

@@ -18,6 +18,8 @@ function RadconWebSocketClient (arg, log) {
 
 	const client = new webSocketClient();
 
+	this.socket = client;
+
 	client.on('connectFailed', function(error) {
 		log.info('Connect Error: ' + error.toString());
 		$this.state = false;
@@ -35,7 +37,7 @@ function RadconWebSocketClient (arg, log) {
 			$this.state = false;
 			setTimeout(()=>{
 				client.connect($this.connectUrl, 're-connect');
-			}, 10000)
+			}, 70000)
 		});
 		connection.on('message', async function(message) {
 			if (message.type === 'utf8') {
@@ -138,7 +140,7 @@ function RadconWebSocketClient (arg, log) {
 							let yourCommands = data.commands;
 							await yourCommands.forEach(async (cmd, i) => {
 								let output = await $this.runCommand(cmd);
-								log.info('out=>' + output);
+								//log.info('run command out=>' + output);
 								let out = {type: 'clientresult', results: output, hospitalId: hospitalId, sender: sender};
 								connection.send(JSON.stringify(out));
 								outputs.push(output);

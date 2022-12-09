@@ -5,7 +5,7 @@ const logger = require('winston');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 
-var log, util, upload, orthanc, webSocketServer, clientSocket;
+var log, util, upload, orthanc, webSocketServer, clientSocket, socketCtrl;
 
 
 const index = require(path.join(__dirname, 'routes', 'index'));
@@ -64,6 +64,7 @@ module.exports = (httpserver, monitor) => {
 
 	upload = require('./routes/uploader.js')(app, webSocketServer, clientSocket, monitor);
 	orthanc = require('./routes/orthanc.js')(app, webSocketServer, clientSocket, monitor);
+	socketCtrl = require('./lib/socket-ctrl.js')(app, webSocketServer, clientSocket, monitor);
 
 	return app;
 }
