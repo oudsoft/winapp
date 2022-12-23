@@ -1,7 +1,9 @@
+const path = require('path');
 var log = require('electron-log');
 log.transports.console.level = 'info';
 log.transports.file.level = 'info';
-log.transports.file.file = __dirname +  '/log/ris-log.log';
+log.transports.file.file = path.normalize(__dirname + '/../log/ris-log.log');;
+
 
 var express = require('express');
 var router = express.Router();

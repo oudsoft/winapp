@@ -4,16 +4,27 @@
  * This software may be modified and distributed under the terms
  * of the MIT license.  See the LICENSE file for details.
  */
-
 const log = require('electron-log');
-log.transports.console.level = 'info';
-log.transports.file.level = 'info';
-log.transports.file.file = __dirname + '/..' + '/log/log.log';
+
+const logInfoFilePath = __dirname + '/..' + '/log/info.log';
+
+/*
+const logErroFilePath = __dirname + '/..' + '/log/error.log';
+
+const logConfig = {console: {level: 'info'}, file: {level: 'info', file: logInfoFilePath}};
+*/
+
+log.transports.console.level = false;
+log.transports.file.level = false;
+log.transports.file.file = logInfoFilePath;
+//log.transports = logConfig;
+
 log.info('inside child express process...');
 
 /**
  * Module dependencies.
  */
+
 require('dotenv').config();
 const os = require('os');
 const fs = require('fs');

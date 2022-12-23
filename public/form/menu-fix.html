@@ -9,7 +9,7 @@
         <img src="/images/orthanc-icon-3.png" width="30px" height="auto" style="margin-top: 3px;"/>
       </div>
       <div class="NavRowTextCell">
-        ภาพในระบบ [All]
+        ภาพในระบบ
       </div>
       <div class="NavRowIconCell"></div>
       <div class="NavRowIconCell">
@@ -71,8 +71,7 @@
           <div class="arrow-left"></div>
         </div>
       </div>
-      <!--
-      <div class="NavSub" id="ALLFilterAllCmd"  data-dd="*", data-dm="*">
+      <div class="NavSub MenuCmd" id="ALLFilterAllCmd"  data-dd="*", data-dm="*">
         <div class="NavSubIconCell"></div>
         <div class="NavSubTextCell" style="padding-left: 30px;">
           All
@@ -81,7 +80,6 @@
           <div class="arrow-left"></div>
         </div>
       </div>
-      -->
     </div>
     <!-- Case Menu -->
     <div class="NavRow" id="CaseMainCmd">
@@ -413,7 +411,7 @@
     $('#StdUrgentConfigSubCmd').trigger('stdurgentconfig', [eventData]);
   });
   */
-  
+
   $('#UserInfoSubCmd').click((evt)=>{
     let eventData = {userId: yourUserdata.id};
     $('#UserInfoSubCmd').trigger('openedituserinfo', [eventData]);

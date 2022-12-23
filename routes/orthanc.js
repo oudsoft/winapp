@@ -216,6 +216,10 @@ module.exports = (app, wsServer, wsClient, monitor) => {
 
   app.post('/orthanc/study/list/lastmonth', function(req, res, next) {
     let lastMountStr = getLastMonthStr();
+    log.info('req.body=> ' + JSON.stringify(req.body));
+    if (req.body.studyFromDate) {
+      lastMountStr = req.body.studyFromDate;
+    }
     log.info('lastMountStr=> ' + lastMountStr);
     let command = 'curl --user demo:demo http://localhost:8042/tools/find -d "{\\"Level\\":\\"Study\\",\\"Query\\":{\\"StudyDate\\": \\"' + lastMountStr + '-\\"}, \\"Expand\\":true}"';
     log.info('command=> ' + command);
@@ -446,8 +450,8 @@ module.exports = (app, wsServer, wsClient, monitor) => {
 
       let event = req.body.event;
       if (event === 'update') {
-        let isChangeRadio = req.body.ChangeRadioOption;
-        let triggerRadioParams = {studyID: studyID, caseId: caseId, userId: userId, isChangeRadio: isChangeRadio, Case_PatientHRLink: convertResult};
+        let radioId = req.body.radioId;
+        let triggerRadioParams = {studyID: studyID, caseId: caseId, userId: userId, radioId: radioId, Case_PatientHRLink: convertResult};
         let rqParams = {
           body: triggerRadioParams,
           url: 'https://radconnext.info/api/cases/updatecase/trigger',

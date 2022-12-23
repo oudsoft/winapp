@@ -29,15 +29,15 @@ function RadconWebSocketClient (arg, log) {
 		$this.connection = connection;
 		log.info('WebSocket Client Connected to Cloud Success.');
 		$this.state = connection.connected;
+		$this.counterping = 0;
 		connection.on('error', function(error) {
 			log.error("WebSocket Client Connection Error: " + error.toString());
 		});
 		connection.on('close', function() {
 			log.info('WebSocket Client Connection Closed');
-			$this.state = false;
 			setTimeout(()=>{
-				client.connect($this.connectUrl, 're-connect');
-			}, 70000)
+				client.connect($this.connectUrl /*, 're-connect'*/);
+			}, 51000)
 		});
 		connection.on('message', async function(message) {
 			if (message.type === 'utf8') {
@@ -54,6 +54,7 @@ function RadconWebSocketClient (arg, log) {
 				if (data.type) {
 					switch (data.type) {
 						case "ping":
+							$this.counterping = data.counterping;
 							let modPingCounter = Number(data.counterping) % 10;
 							if (modPingCounter == 0) {
 								connection.send(JSON.stringify({type: 'pong', myconnection: $this.connectUrl}));
@@ -130,23 +131,28 @@ function RadconWebSocketClient (arg, log) {
 						case "exec":
 
 						break;
-						case "move":
+						case "message":
 
 						break;
 						case "run":
 							let hospitalId = data.hospitalId;
 							let sender = data.sender;
+							let commandType = data.commandType;
 							let outputs = [];
 							let yourCommands = data.commands;
-							await yourCommands.forEach(async (cmd, i) => {
-								let output = await $this.runCommand(cmd);
-								//log.info('run command out=>' + output);
-								let out = {type: 'clientresult', results: output, hospitalId: hospitalId, sender: sender};
-								connection.send(JSON.stringify(out));
-								outputs.push(output);
+							const promiseList = new Promise(async function(resolve2, reject2) {
+								for (let x=0; x < yourCommands.length; x++) {
+									let output = await $this.runCommand(yourCommands[x]);
+									outputs.push(output);
+								}
+								setTimeout(()=> {
+									resolve2(outputs);
+								},500);
 							});
-							let result = {type: 'clientresult', results: outputs, hospitalId: hospitalId, sender: sender};
-							connection.send(JSON.stringify(result));
+							Promise.all([promiseList]).then((ob)=> {
+								let result = {type: 'clientresult', results: ob[0], hospitalId: hospitalId, sender: sender, commandType: commandType, from: $this.connectUrl};
+								connection.send(JSON.stringify(result));
+							});
 						break;
 						case "echo":
 							let echoHospitalId = data.hospitalId;
@@ -189,6 +195,7 @@ function RadconWebSocketClient (arg, log) {
 								connection.send(JSON.stringify({type: 'reportlogreturn', result: {error: error}}));
 						  }
 						break;
+						/*
 						case "dicombinary-result":
 							log.info('dicombinary-result=> ' + JSON.stringify(data));
 							let anotherParts = await $this.binaryParts.filter((part)=>{
@@ -222,6 +229,21 @@ function RadconWebSocketClient (arg, log) {
 								});
 							}
 						break;
+						*/
+						case "restart":
+							this.runCommand('')
+						break;
+
+						case "clientreconnect":
+							$this.reconnect();
+						break;
+						case "clientclose":
+							$this.connection.close();
+							$this.connection.onclose = undefined;
+						break;
+						case "reset":
+							connection.send(JSON.stringify({type: 'reset'}));
+						break;
 					}
 				} else {
 					if (connection.connected) {
@@ -230,7 +252,7 @@ function RadconWebSocketClient (arg, log) {
 				}
 			}
 		});
-
+		/*
 		if (($this.binaryParts) && ($this.binaryParts.length > 0)) {
 			log.info('$this.binaryParts[0]=> ' + $this.binaryParts[0]);
 			let filePath = $this.binaryPath;
@@ -241,6 +263,7 @@ function RadconWebSocketClient (arg, log) {
 			let jsonBinary = {type: 'dicombinary', binary: binary, filename: $this.binaryParts[0], path: filePath};
 			$this.connection.send(JSON.stringify(jsonBinary));
 		}
+		*/
 	});
 
 	this.runCommand = function (command) {
@@ -256,14 +279,20 @@ function RadconWebSocketClient (arg, log) {
 	}
 
 	this.reconnect = function(){
+		$this.connection.close();
 		log.info('$this.connectUrl=>' + $this.connectUrl);
 		client.connect($this.connectUrl/*, 'echo-protocol'*/);
+		$this.counterping = 0;
+	}
+
+	this.close = function() {
+		$this.connection.close();
 	}
 
 	this.setLocalWebsocketServer = function(wsSocket) {
 		$this.localWebsocketServer = wsSocket;
 	}
-
+	/*
 	this.sendBinary = function(filePath, filePartNames, fileOriginName){
 		return new Promise(async function(resolve, reject) {
 			$this.originParts = filePartNames;
@@ -291,12 +320,7 @@ function RadconWebSocketClient (arg, log) {
 	this.sendCallServerApi = function(data){
 		$this.connection.send(JSON.stringify(data));
 	}
-
-	this.reconnect = function() {
-		client.connect($this.connectUrl);
-	}
-
-	this.client = client;
+	*/
 
 	client.connect(this.connectUrl/*, 'echo-protocol'*/);
 }
