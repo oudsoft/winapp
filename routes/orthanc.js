@@ -417,7 +417,6 @@ module.exports = (app, wsServer, wsClient, monitor) => {
         let clearResults = await dicom.doRemoveOldImages(oldHrPatientFiles);
         log.info('clearResults=>' + JSON.stringify(clearResults));
       }
-
       convertResult = await dicom.doConvertJPG2DCM(newHrPatientFiles, studyTags);
       res.status(200).send({status: {code: 200}, result: {HrPatientFiles: newHrPatientFiles, convert: convertResult}});
     } else {
@@ -426,56 +425,60 @@ module.exports = (app, wsServer, wsClient, monitor) => {
     log.info('convertResult=>' + JSON.stringify(convertResult));
 
     setTimeout(async()=>{
-      let result2 = await dicom.doFetchDicomZipFile(studyID, dicomZipFileName, caseId);
-      log.info("Study Archive Upload from local to cloud done: " + "https://radconnext.info" + result2.link);
+      try {
+        let result2 = await dicom.doFetchDicomZipFile(studyID, dicomZipFileName, caseId);
+        log.info("Study Archive Upload from local to cloud done: " + "https://radconnext.info" + result2.link);
 
-      let fetchZipFile = async function(zipFileName){
-        log.info("Start Upload Attach " + zipFileName);
-        let fetchRes = await dicom.doFetchZipFile(zipFileName);
-        let zipPath = process.env.LOCAL_ATTACH_DIR + zipFileName;
-        await dicom.doDeleteFile(zipPath);
-        log.info("Done => https://radconnext.info" + fetchRes.link);
-      }
+        let fetchZipFile = async function(zipFileName){
+          log.info("Start Upload Attach " + zipFileName);
+          let fetchRes = await dicom.doFetchZipFile(zipFileName);
+          let zipPath = process.env.LOCAL_ATTACH_DIR + zipFileName;
+          await dicom.doDeleteFile(zipPath);
+          log.info("Done => https://radconnext.info" + fetchRes.link);
+        }
 
-      let attachFiles = await dicom.doSeekAttchFiles();
-      log.info("attachFiles=> " + attachFiles);
-      if (attachFiles.length > 0) {
-        let i = 0;
-        while (i < attachFiles.length) {
-          let zipFile = attachFiles[i];
-          await fetchZipFile(zipFile);
-          i = i + 1;
+        let attachFiles = await dicom.doSeekAttchFiles();
+        log.info("attachFiles=> " + attachFiles);
+        if (attachFiles.length > 0) {
+          let i = 0;
+          while (i < attachFiles.length) {
+            let zipFile = attachFiles[i];
+            await fetchZipFile(zipFile);
+            i = i + 1;
+          }
         }
-      }
 
-      let event = req.body.event;
-      if (event === 'update') {
-        let radioId = req.body.radioId;
-        let triggerRadioParams = {studyID: studyID, caseId: caseId, userId: userId, radioId: radioId, Case_PatientHRLink: convertResult};
-        let rqParams = {
-          body: triggerRadioParams,
-          url: 'https://radconnext.info/api/cases/updatecase/trigger',
-          method: 'post'
+        let event = req.body.event;
+        if (event === 'update') {
+          let radioId = req.body.radioId;
+          let triggerRadioParams = {studyID: studyID, caseId: caseId, userId: userId, radioId: radioId, Case_PatientHRLink: convertResult};
+          let rqParams = {
+            body: triggerRadioParams,
+            url: 'https://radconnext.info/api/cases/updatecase/trigger',
+            method: 'post'
+          }
+          util.proxyRequest(rqParams).then(async(proxyRes)=>{
+            log.info('proxyRes=>'+ JSON.stringify(proxyRes));
+            let socketTrigger = {type: 'updatedicom', dicom: studyTags, caseId: caseId, isChangeRadio: isChangeRadio, result: proxyRes.result};
+            let result = await webSocketServer.sendNotify(socketTrigger);
+          });
+        } else if (event === 'new') {
+          let triggerRadioParams = {studyID: studyID, userId: userId, Case_PatientHRLink: convertResult};
+          let rqParams = {
+            body: triggerRadioParams,
+            url: 'https://radconnext.info/api/cases/newcase/trigger',
+            method: 'post'
+          }
+          util.proxyRequest(rqParams).then(async(proxyRes)=>{
+            log.info('proxyRes=>'+ JSON.stringify(proxyRes));
+            let socketTrigger = {type: 'newdicom', dicom: studyTags, result: proxyRes.result};
+            let result = await webSocketServer.sendNotify(socketTrigger);
+          });
         }
-        util.proxyRequest(rqParams).then(async(proxyRes)=>{
-          log.info('proxyRes=>'+ JSON.stringify(proxyRes));
-          let socketTrigger = {type: 'updatedicom', dicom: studyTags, caseId: caseId, isChangeRadio: isChangeRadio, result: proxyRes.result};
-          let result = await webSocketServer.sendNotify(socketTrigger);
-        });
-      } else if (event === 'new') {
-        let triggerRadioParams = {studyID: studyID, userId: userId, Case_PatientHRLink: convertResult};
-        let rqParams = {
-          body: triggerRadioParams,
-          url: 'https://radconnext.info/api/cases/newcase/trigger',
-          method: 'post'
-        }
-        util.proxyRequest(rqParams).then(async(proxyRes)=>{
-          log.info('proxyRes=>'+ JSON.stringify(proxyRes));
-          let socketTrigger = {type: 'newdicom', dicom: studyTags, result: proxyRes.result};
-          let result = await webSocketServer.sendNotify(socketTrigger);
-        });
+      } catch (err) {
+        log.error('/orthanc/transfer/dicom Error=>'+ JSON.stringify(err));
       }
-    }, 1100)
+    }, 1100);
   });
 
   app.post('/orthanc/store/dicom', async function(req, res) {

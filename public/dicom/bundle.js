@@ -9634,14 +9634,14 @@ module.exports = function ( jq ) {
 			if (!(data.clientSocketState.connected)) {
 				let ms = 60;
 				setTimeout(()=>{
-					let callUrl = '/api/client/api/connect/cloud/reconnect';
+					let callUrl = '/api/client/api/connect/cloud/close';
 					let params = {};
 					$.get(callUrl, params).then((response) => {
 						console.log(response);
 						clientSocketLastCounterPing = 0;
 					});
 				}, (ms*1000));
-				doCreateWebSocketRetry(ms)
+				//doCreateWebSocketRetry(ms)
 			}
 			console.log(clientSocketLastCounterPing);
 			console.log(data.clientSocketState.counterping);
@@ -9650,14 +9650,14 @@ module.exports = function ( jq ) {
 			} else {
 				let ms = 60;
 				setTimeout(()=>{
-					let callUrl = '/api/client/api/connect/cloud/reconnect';
+					let callUrl = '/api/client/api/connect/cloud/close';
 					let params = {};
 					$.get(callUrl, params).then((response) => {
 						console.log(response);
 						clientSocketLastCounterPing = 0;
 					});
 				}, (ms*1000));
-				doCreateWebSocketRetry(ms)
+				//doCreateWebSocketRetry(ms)
 			}
 
 		} else if (data.type == 'result') {
@@ -10037,8 +10037,8 @@ module.exports = function ( jq, wsm, wsl) {
 				let stateMsg = {type: 'web', from: userdata.username, to: data.from, data: {type: 'socketstate', state: wsl.clientSocketState.state, connected: wsl.clientSocketState.connected, orthancCount: data.data.orthancCount}}
 				wsm.send(JSON.stringify(stateMsg));
 				if ((wsl.clientSocketState.connected) && (data.data.orthancCount == 0)) {
+					let ms = 5;	
 					setTimeout(()=>{
-						let ms = 5;
 						let callUrl = '/api/client/api/connect/cloud/close';
 						let params = {};
 						$.get(callUrl, params).then((response) => {
@@ -21837,7 +21837,7 @@ const doTriggerLoadDicom = function(){
 
 const actionAfterSetupCounter = function(){
   $('#HomeMainCmd').click();
-  doTriggerLoadDicom();
+  //doTriggerLoadDicom();
 }
 
 const onClientReconnectTrigger = function(evt){
@@ -22645,7 +22645,7 @@ module.exports = function ( jq ) {
     $(tableRow).appendTo($(table));
 
 		if (defualtValue.caseId) {
-			let uploadStudyReplaceOptionDiv = $('<div id="UploadStudyReplaceOptionDiv" style="margin-top: 8px;"><input type="checkbox" id="UploadStudyReplaceOption" checked style="transform: scale(1.5)"><label for="UploadStudyReplaceOption"> upload file ภาพทั้งหมดใหม่อีกครั้ง</label></div>');
+			let uploadStudyReplaceOptionDiv = $('<div id="UploadStudyReplaceOptionDiv" style="margin-top: 8px;"><input type="checkbox" id="UploadStudyReplaceOption" style="transform: scale(1.5)"><label for="UploadStudyReplaceOption"> upload file ภาพทั้งหมดใหม่อีกครั้ง</label></div>');
 			$(tableCell).append($(uploadStudyReplaceOptionDiv));
 		}
 
@@ -22737,8 +22737,8 @@ module.exports = function ( jq ) {
 
     let radioCustomSelector = undefined;
     const youCan = [1, 2, 3, 4, 7, 8];
-    let checkState = ((!defualtValue.status) || (util.contains.call(youCan, defualtValue.status)));
-    if (checkState) {
+    //let checkState = ((!defualtValue.status) || (util.contains.call(youCan, defualtValue.status)));
+    //if (checkState) {
       let radioCustomSelectorBox = $('<div id="Radiologist"></div>');
       $(radioCustomSelectorBox).appendTo($(tableCell));
       let customSelectPluginOption = {
@@ -22765,7 +22765,7 @@ module.exports = function ( jq ) {
       }
       $(tableCell).appendTo($(tableRow));
       $(tableRow).appendTo($(table));
-    }
+    //}
 
     let footerWrapper = $('<div class="header-cell"></div>');
     let backFirstStepCmd = $('<input type="button" value=" กลับ " class="none-action-btn"/>');

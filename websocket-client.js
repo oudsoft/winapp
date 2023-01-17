@@ -280,9 +280,6 @@ function RadconWebSocketClient (arg, log) {
 
 	this.reconnect = function(){
 		$this.connection.close();
-		log.info('$this.connectUrl=>' + $this.connectUrl);
-		client.connect($this.connectUrl/*, 'echo-protocol'*/);
-		$this.counterping = 0;
 	}
 
 	this.close = function() {
