@@ -104,21 +104,25 @@ const doStoreDicomFile = function(dicomFile, orthancUrl, user, pass){
       if (perr) {
         log.info('Store DCM to local Orthanc perr=> ' + JSON.stringify(perr));
       }
-      let instanceID = JSON.parse(pbody).ID;
-      let storeDicomUrl = orthancUrl + '/modalities/pacs/store';
-      let storeDicomOptions = {
-        url: storeDicomUrl,
-        method: 'POST',
-        headers: headers,
-        auth: auth,
-        body: instanceID
+      if (pbody) {
+        let instanceID = JSON.parse(pbody).ID;
+        let storeDicomUrl = orthancUrl + '/modalities/pacs/store';
+        let storeDicomOptions = {
+          url: storeDicomUrl,
+          method: 'POST',
+          headers: headers,
+          auth: auth,
+          body: instanceID
+        }
+        requester(storeDicomOptions, (lerr, lres, lbody)=>{
+          log.info('Send new Instance from Orthanc to PACS lbody=> ' + JSON.stringify(lbody));
+          log.info('lres=> ' + JSON.stringify(lres));
+          log.info('lerr=> ' + JSON.stringify(lerr));
+          resolve(lbody);
+        });
+      } else {
+        log.error('ERROR from post dcm to orthanc.')
       }
-      requester(storeDicomOptions, (lerr, lres, lbody)=>{
-        log.info('Send new Instance from Orthanc to PACS lbody=> ' + JSON.stringify(lbody));
-        log.info('lres=> ' + JSON.stringify(lres));
-        log.info('lerr=> ' + JSON.stringify(lerr));
-        resolve(lbody);
-      });
     });
   });
 }

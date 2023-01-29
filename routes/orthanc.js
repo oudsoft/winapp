@@ -459,7 +459,7 @@ module.exports = (app, wsServer, wsClient, monitor) => {
           }
           util.proxyRequest(rqParams).then(async(proxyRes)=>{
             log.info('proxyRes=>'+ JSON.stringify(proxyRes));
-            let socketTrigger = {type: 'updatedicom', dicom: studyTags, caseId: caseId, isChangeRadio: isChangeRadio, result: proxyRes.result};
+            let socketTrigger = {type: 'updatedicom', dicom: studyTags, caseId: caseId, isChangeRadio: proxyRes.isChangeRadio, result: proxyRes.result};
             let result = await webSocketServer.sendNotify(socketTrigger);
           });
         } else if (event === 'new') {

@@ -1291,7 +1291,7 @@ module.exports = function ( jq, ut, cm ) {
         $(box).empty();
         $(box).append($('<div></div>').text('แจ้งรังสีแพทย์รับเคสทาง Line แล้ว'));
 				let callTriggerBox = $(box).find('#CallTrigger');
-				console.log(callBox.length);
+				console.log(callTriggerBox.length);
 				if (callTriggerBox.length == 0) {
 	        let callUrl = '/api/voiptask/list';
 	        doCallTaskDirect(callUrl, data.caseId).then((clockBox)=>{
@@ -2020,7 +2020,7 @@ module.exports = function ( jq ) {
 				});
 				$(caseEventLogButton).appendTo($(operationCol));
 
-				if ((incidents[i].case.casestatus.id == 1) || (incidents[i].case.casestatus.id == 2) || (incidents[i].case.casestatus.id == 3) || (incidents[i].case.casestatus.id == 4) || (incidents[i].case.casestatus.id == 7)) {
+				if ([1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14].includes(incidents[i].case.casestatus.id)) {
 					let editCaseButton = $('<img class="pacs-command" data-toggle="tooltip" src="/images/update-icon-2.png" title="Edit Case Detail."/>');
 					$(editCaseButton).click(function() {
 						doCallEditCase(incidents[i].case.id);
@@ -2046,7 +2046,7 @@ module.exports = function ( jq ) {
 					}
 				}
 
-				if ((incidents[i].case.casestatus.id == 3) || (incidents[i].case.casestatus.id == 4)) {
+				if ([1, 3, 4, 8].includes(incidents[i].case.casestatus.id)) {
 					let cancelCaseButton = $('<img class="pacs-command" data-toggle="tooltip" src="/images/cancel-icon.png" title="Cancel Case."/>');
 					$(cancelCaseButton).click(function() {
 						doCancelCase(incidents[i].case.id);
@@ -2106,6 +2106,7 @@ module.exports = function ( jq ) {
 					$(deleteCaseButton).appendTo($(operationCmdBox));
 				}
 
+				/*
 				if (incidents[i].case.casestatus.id == 8){
 					let editCaseButton = $('<img class="pacs-command" data-toggle="tooltip" src="/images/update-icon-2.png" title="Edit Case Detail."/>');
 					$(editCaseButton).click(function() {
@@ -2131,7 +2132,7 @@ module.exports = function ( jq ) {
 						$(cancelCaseButton).appendTo($(moreCmdBox));
 					}
 				}
-
+				*/
 				if ([1, 2, 8, 9].includes(incidents[i].case.casestatus.id)) {
 					let attachPlusButton = $('<img class="pacs-command" data-toggle="tooltip" src="/images/attach-plus-icon.png" title="Add New Attach Zip File"/>');
 					$(attachPlusButton).click(async function() {
@@ -4368,45 +4369,60 @@ module.exports = function ( jq ) {
 		}
 	}
 
-	const onSimpleEditorPaste = function(evt){
-		//console.log(evt);
-		let pathElems = evt.originalEvent.path;
-		let simpleEditorPath = pathElems.find((path)=>{
-			if (path.className === 'jqte_editor') {
-				return path;
-			}
-		});
-		if (simpleEditorPath) {
-			let clipboardData = evt.originalEvent.clipboardData || window.clipboardData;
-			let textPastedData = clipboardData.getData('text/plain');
-			//console.log(textPastedData);
-			let htmlPastedData = clipboardData.getData('text/html');
+	const simpleEditorPaste = function(evt){
+		let clipboardData = evt.originalEvent.clipboardData || window.clipboardData;
+		let textPastedData = clipboardData.getData('text/plain');
+		//console.log(textPastedData);
+		let htmlPastedData = clipboardData.getData('text/html');
+		//console.log(htmlPastedData);
+		//let htmlFormat = htmlformat(htmlPastedData);
+		//console.log(htmlFormat);
+		let caseData = $('#SimpleEditorBox').data('casedata');
+		let simpleEditor = $('#SimpleEditorBox').find('#SimpleEditor');
+		let oldContent = $(simpleEditor).val();
+		if ((htmlPastedData) && (htmlPastedData !== '')) {
 			//console.log(htmlPastedData);
-			//let htmlFormat = htmlformat(htmlPastedData);
+			let htmlFormat = htmlformat(htmlPastedData); //<-- ถ้าเป็น full html จะสกัดเอาเฉพาะใน body ของ html
+			htmlFormat = doExtractHTMLFromAnotherSource(htmlFormat);
 			//console.log(htmlFormat);
-			let caseData = $('#SimpleEditorBox').data('casedata');
-			let simpleEditor = $('#SimpleEditorBox').find('#SimpleEditor');
-			let oldContent = $(simpleEditor).val();
-			if ((htmlPastedData) && (htmlPastedData !== '')) {
-				let htmlFormat = doExtractHTMLFromAnotherSource(htmlPastedData);
-				document.execCommand('insertHTML', false, htmlFormat);
-				let newContent = oldContent + htmlFormat;
+			document.execCommand('insertHTML', false, htmlFormat);
+			let newContent = oldContent + htmlFormat;
+			let draftbackup = {caseId: caseData.caseId, content: newContent, backupAt: new Date()};
+			localStorage.setItem('draftbackup', JSON.stringify(draftbackup));
+			$('#SimpleEditorBox').trigger('draftbackupsuccess', [draftbackup]);
+		} else {
+			if ((textPastedData) && (textPastedData !== '')) {
+				console.log(textPastedData);
+				textPastedData = doExtractHTMLFromAnotherSource(textPastedData);
+				document.execCommand('insertText', false, textPastedData);
+				let newContent = oldContent + textPastedData;
 				let draftbackup = {caseId: caseData.caseId, content: newContent, backupAt: new Date()};
 				localStorage.setItem('draftbackup', JSON.stringify(draftbackup));
 				$('#SimpleEditorBox').trigger('draftbackupsuccess', [draftbackup]);
-			} else {
-				if ((textPastedData) && (textPastedData !== '')) {
-					console.log(textPastedData);
-					textPastedData = doExtractHTMLFromAnotherSource(textPastedData);
-					document.execCommand('insertText', false, textPastedData);
-					let newContent = oldContent + textPastedData;
-					let draftbackup = {caseId: caseData.caseId, content: newContent, backupAt: new Date()};
-					localStorage.setItem('draftbackup', JSON.stringify(draftbackup));
-					$('#SimpleEditorBox').trigger('draftbackupsuccess', [draftbackup]);
-				}
 			}
-			//console.log(localStorage.getItem('draftbackup'));
 		}
+	}
+
+	const onSimpleEditorPaste = function(evt){
+		console.log(evt);
+		/*
+		let pathElems = evt.originalEvent.path;
+		if (pathElems) {
+			let simpleEditorPath = pathElems.find((path)=>{
+				if (path.className === 'jqte_editor') {
+					return path;
+				}
+			});
+			if (simpleEditorPath) {
+				simpleEditorPaste(evt);
+			}
+		} else if (evt.target.className === 'jqte_editor') {
+			simpleEditorPaste(evt);
+		}
+		*/
+
+		simpleEditorPaste(evt);
+
 		evt.stopPropagation();
 		evt.preventDefault();
 	}
@@ -8883,6 +8899,7 @@ module.exports = function ( jq ) {
   const util = require('./utilmod.js')($);
   const apiconnector = require('./apiconnect.js')($);
   const common = require('./commonlib.js')($);
+	const changepwddlg = require('../../radio/mod/changepwddlg.js')($);
 
   function doCallUpdateUserInfo(data) {
     return new Promise(function(resolve, reject) {
@@ -8949,6 +8966,20 @@ module.exports = function ( jq ) {
 		return $(fragRow);
 	}
 
+	const createChangePwdFragment = function(changePwdCallback) {
+		let fragRow = $('<div style="display: table-row; padding: 2px; background-color: grey; width: 100%;"></div>');
+		let labelCell = $('<div style="display: table-cell; width: 250px; padding: 2px; text-align: center;"></div>');
+		let inputCell = $('<div style="display: table-cell; padding: 2px;"></div>');
+		let changePwdCmd = $('<a href="#">เปลี่ยน Password</a>');
+		$(changePwdCmd).on('click', (evt)=>{
+			changePwdCallback();
+		});
+		$(labelCell).append($(changePwdCmd));
+		$(labelCell).appendTo($(fragRow));
+		$(inputCell).appendTo($(fragRow));
+		return $(fragRow);
+	}
+
   const doShowUserProfile = function() {
 		let yourUserdata = JSON.parse(localStorage.getItem('userdata'));
 
@@ -8977,6 +9008,13 @@ module.exports = function ( jq ) {
 
 		let yourDefaultDownloadPathFrag = createFormFragment('UserPathRadiant', 'โฟลเดอร์ดาวน์โหลด Dicom', yourUserdata.userinfo.User_PathRadiant);
 		$(yourDefaultDownloadPathFrag).appendTo($(table));
+
+		const changePasswordCmdClick = function(evt){
+			changepwddlg.doCreateChangePwdDlg();
+		}
+
+		let createChangePwdFrag = createChangePwdFragment(changePasswordCmdClick);
+		$(createChangePwdFrag).appendTo($(table));
 
 		const radDialogOptions = {
 	    title: 'ข้อมูลผู้ใช้งานของฉัน',
@@ -9101,7 +9139,7 @@ module.exports = function ( jq ) {
   }
 }
 
-},{"./apiconnect.js":2,"./commonlib.js":6,"./utilmod.js":19}],18:[function(require,module,exports){
+},{"../../radio/mod/changepwddlg.js":30,"./apiconnect.js":2,"./commonlib.js":6,"./utilmod.js":19}],18:[function(require,module,exports){
 /* userprofilelib.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -9880,7 +9918,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../radio/mod/websocketmessage.js":30,"../../refer/mod/websocketmessage.js":31,"./websocketmessage.js":21}],20:[function(require,module,exports){
+},{"../../radio/mod/websocketmessage.js":31,"../../refer/mod/websocketmessage.js":32,"./websocketmessage.js":21}],20:[function(require,module,exports){
 (function (global){(function (){
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.VideoStreamMerger = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 "use strict";module.exports=VideoStreamMerger;function VideoStreamMerger(a){var b=this;if(!(b instanceof VideoStreamMerger))return new VideoStreamMerger(a);a=a||{};var c=window.AudioContext||window.webkitAudioContext,d=!!(c&&(b._audioCtx=a.audioContext||new c).createMediaStreamDestination),e=!!document.createElement("canvas").captureStream;if(!(d&&e))throw new Error("Unsupported browser");b.width=a.width||400,b.height=a.height||300,b.fps=a.fps||25,b.clearRect=!(a.clearRect!==void 0)||a.clearRect,b._canvas=document.createElement("canvas"),b._canvas.setAttribute("width",b.width),b._canvas.setAttribute("height",b.height),b._canvas.setAttribute("style","position:fixed; left: 110%; pointer-events: none"),b._ctx=b._canvas.getContext("2d"),b._streams=[],b._audioDestination=b._audioCtx.createMediaStreamDestination(),b._setupConstantNode(),b.started=!1,b.result=null,b._backgroundAudioHack()}VideoStreamMerger.prototype.getAudioContext=function(){var a=this;return a._audioCtx},VideoStreamMerger.prototype.getAudioDestination=function(){var a=this;return a._audioDestination},VideoStreamMerger.prototype.getCanvasContext=function(){var a=this;return a._ctx},VideoStreamMerger.prototype._backgroundAudioHack=function(){var a=this,b=a._audioCtx.createConstantSource(),c=a._audioCtx.createGain();c.gain.value=.001,b.connect(c),c.connect(a._audioCtx.destination),b.start()},VideoStreamMerger.prototype._setupConstantNode=function(){var a=this,b=a._audioCtx.createConstantSource();b.start();var c=a._audioCtx.createGain();c.gain.value=0,b.connect(c),c.connect(a._audioDestination)},VideoStreamMerger.prototype.updateIndex=function(a,b){var c=this;"string"==typeof a&&(a={id:a}),b=null==b?0:b;for(var d=0;d<c._streams.length;d++)a.id===c._streams[d].id&&(c._streams[d].index=b);c._sortStreams()},VideoStreamMerger.prototype._sortStreams=function(){var a=this;a._streams=a._streams.sort(function(c,a){return c.index-a.index})},VideoStreamMerger.prototype.addMediaElement=function(a,b,c){var d=this;if(c=c||{},c.x=c.x||0,c.y=c.y||0,c.width=c.width||d.width,c.height=c.height||d.height,c.mute=c.mute||c.muted||!1,c.oldDraw=c.draw,c.oldAudioEffect=c.audioEffect,c.draw="VIDEO"===b.tagName||"IMG"===b.tagName?function(a,d,e){c.oldDraw?c.oldDraw(a,b,e):(a.drawImage(b,c.x,c.y,c.width,c.height),e())}:null,!c.mute){var e=b._mediaElementSource||d.getAudioContext().createMediaElementSource(b);b._mediaElementSource=e,e.connect(d.getAudioContext().destination);var f=d.getAudioContext().createGain();e.connect(f),b.muted?(b.muted=!1,b.volume=.001,f.gain.value=1e3):f.gain.value=1,c.audioEffect=function(a,b){c.oldAudioEffect?c.oldAudioEffect(f,b):f.connect(b)},c.oldAudioEffect=null}d.addStream(a,c)},VideoStreamMerger.prototype.addStream=function(a,b){var c=this;if("string"==typeof a)return c._addData(a,b);b=b||{};for(var d={isData:!1,x:b.x||0,y:b.y||0,width:b.width||c.width,height:b.height||c.height,draw:b.draw||null,mute:b.mute||b.muted||!1,audioEffect:b.audioEffect||null,index:null==b.index?0:b.index,hasVideo:0<a.getVideoTracks().length},e=null,f=0;f<c._streams.length;f++)c._streams[f].id===a.id&&(e=c._streams[f].element);e||(e=document.createElement("video"),e.autoplay=!0,e.muted=!0,e.srcObject=a,e.setAttribute("style","position:fixed; left: 0px; top:0px; pointer-events: none; opacity:0;"),document.body.appendChild(e),!d.mute&&(d.audioSource=c._audioCtx.createMediaStreamSource(a),d.audioOutput=c._audioCtx.createGain(),d.audioOutput.gain.value=1,d.audioEffect?d.audioEffect(d.audioSource,d.audioOutput):d.audioSource.connect(d.audioOutput),d.audioOutput.connect(c._audioDestination))),d.element=e,d.id=a.id||null,c._streams.push(d),c._sortStreams()},VideoStreamMerger.prototype.removeStream=function(a){var b=this;"string"==typeof a&&(a={id:a});for(var c=0;c<b._streams.length;c++)a.id===b._streams[c].id&&(b._streams[c].audioSource&&(b._streams[c].audioSource=null),b._streams[c].audioOutput&&(b._streams[c].audioOutput.disconnect(b._audioDestination),b._streams[c].audioOutput=null),b._streams[c]=null,b._streams.splice(c,1),c--)},VideoStreamMerger.prototype._addData=function(a,b){var c=this;b=b||{};var d={};d.isData=!0,d.draw=b.draw||null,d.audioEffect=b.audioEffect||null,d.id=a,d.element=null,d.index=null==b.index?0:b.index,d.audioEffect&&(d.audioOutput=c._audioCtx.createGain(),d.audioOutput.gain.value=1,d.audioEffect(null,d.audioOutput),d.audioOutput.connect(c._audioDestination)),c._streams.push(d),c._sortStreams()},VideoStreamMerger.prototype._requestAnimationFrame=function(a){var b=!1,c=setInterval(function(){!b&&document.hidden&&(b=!0,clearInterval(c),a())},1e3/self.fps);requestAnimationFrame(function(){b||(b=!0,clearInterval(c),a())})},VideoStreamMerger.prototype.start=function(){var a=this;a.started=!0,a._requestAnimationFrame(a._draw.bind(a)),a.result=a._canvas.captureStream(a.fps);var b=a.result.getAudioTracks()[0];b&&a.result.removeTrack(b);var c=a._audioDestination.stream.getAudioTracks();a.result.addTrack(c[0])},VideoStreamMerger.prototype._draw=function(){function a(){c--,0>=c&&b._requestAnimationFrame(b._draw.bind(b))}var b=this;if(b.started){var c=b._streams.length;b.clearRect&&b._ctx.clearRect(0,0,b.width,b.height),b._streams.forEach(function(c){c.draw?c.draw(b._ctx,c.element,a):!c.isData&&c.hasVideo?(b._ctx.drawImage(c.element,c.x,c.y,c.width,c.height),a()):a()}),0===b._streams.length&&a()}},VideoStreamMerger.prototype.destroy=function(){var a=this;a.started=!1,a._canvas=null,a._ctx=null,a._streams=[],a._audioCtx.close(),a._audioCtx=null,a._audioDestination=null,a.result.getTracks().forEach(function(a){a.stop()}),a.result=null};
@@ -34958,6 +34996,103 @@ module.exports = function ( jq ) {
 }
 
 },{"../../case/mod/apiconnect.js":2,"../../case/mod/commonlib.js":6,"../../case/mod/utilmod.js":19}],30:[function(require,module,exports){
+/*changepwddlg.js*/
+module.exports = function ( jq ) {
+	const $ = jq;
+
+	const apiconnector = require('../../case/mod/apiconnect.js')($);
+  const util = require('../../case/mod/utilmod.js')($);
+  const common = require('../../case/mod/commonlib.js')($);
+
+  const doCreateChangePwdDlg = function(){
+    let changePwdDlg = $('<div></div>');
+    let changePwdWrapper = $('<table width="100%" border="0" cellspacing="0" cellpadding="2"></table>');
+    let newPasswordRow = $('<tr></tr>');
+    let retryPasswordRow = $('<tr></tr>');
+    $(changePwdWrapper).append($(newPasswordRow)).append($(retryPasswordRow));
+    let newPasswordLabelCell = $('<td width="40%" align="left">New Password <span style="color: red;">*</span></td>');
+    let newPasswordValueCell = $('<td width="*" align="left"></td>');
+    $(newPasswordRow).append($(newPasswordLabelCell)).append($(newPasswordValueCell));
+    let retryPasswordLabelCell = $('<td align="left">Retry Password <span style="color: red;">*</span></td>');
+    let retryPasswordValueCell = $('<td align="left"></td>');
+    $(retryPasswordRow).append($(retryPasswordLabelCell)).append($(retryPasswordValueCell));
+
+    let newPasswordValue = $('<input type="password" id="NewPassword" style="width: 190px;"/>');
+    let retryPasswordValue = $('<input type="password" id="RetryPassword" style="width: 190px;"/>');
+    $(newPasswordValueCell).append($(newPasswordValue));
+    $(retryPasswordValueCell).append($(retryPasswordValue));
+    $(changePwdDlg).append($(changePwdWrapper));
+
+    const doVerifyNewPassword = function(){
+      let newPassword = $(newPasswordValue).val();
+      let retryPassword = $(retryPasswordValue).val();
+      if (newPassword !== ''){
+        $(newPasswordValue).css({'border': ''});
+        if (retryPassword !== ''){
+          $(retryPasswordValue).css({'border': ''});
+          if (newPassword === retryPassword){
+            $(newPasswordValue).css({'border': ''});
+            $(retryPasswordValue).css({'border': ''});
+            return newPassword;
+          } else {
+            $(newPasswordValue).css({'border': '1px solid red'});
+            $(retryPasswordValue).css({'border': '1px solid red'});
+            $.notify('New Password กับ Retry Password มีค่าไม่เหมือนกัน', 'error');
+            return;
+          }
+        } else {
+          $(retryPasswordValue).css({'border': '1px solid red'});
+          $.notify('Retry Password ต้องไม่ว่าง', 'error');
+          return;
+        }
+      } else {
+        $(newPasswordValue).css({'border': '1px solid red'});
+        $.notify('New Password ต้องไม่ว่าง', 'error');
+        return;
+      }
+    }
+
+    const radconfirmoption = {
+      title: 'เปลี่ยน Password',
+      msg: $(changePwdDlg),
+      width: '440px',
+      onOk: function(evt) {
+        let newPassword = doVerifyNewPassword();
+        if ((newPassword) && (newPassword !== '')) {
+          //$('body').loading('start');
+          changePwdDlgBox.closeAlert();
+          let userdata = JSON.parse(localStorage.getItem('userdata'));
+          let userId = userdata.id;
+          let reqParams = {userId: userId, password: newPassword};
+          console.log(reqParams);
+          $.post('/api/users/resetpassword', reqParams).then((response) => {
+            console.log(response);
+            //$('body').loading('stop');
+            if (response) {
+              $.notify('เปลี่ยน Password สำเร็จ', 'success');
+            } else {
+              $.notify('เปลี่ยน Password ไม่สำเร็จ', 'error');
+            }
+          });
+        }
+      },
+      onCancel: function(evt){
+        changePwdDlgBox.closeAlert();
+      }
+    }
+    let changePwdDlgBox = $('body').radalert(radconfirmoption);
+  }
+
+  const doShowChangePwdDlg = function(){
+
+  }
+
+  return {
+    doCreateChangePwdDlg
+  }
+}
+
+},{"../../case/mod/apiconnect.js":2,"../../case/mod/commonlib.js":6,"../../case/mod/utilmod.js":19}],31:[function(require,module,exports){
 /* websocketmessage.js */
 module.exports = function ( jq, wsm) {
 	const $ = jq;
@@ -34999,7 +35134,7 @@ module.exports = function ( jq, wsm) {
       let event = new CustomEvent(eventName, {"detail": {eventname: eventName, data: evtData}});
       document.dispatchEvent(event);
 		} else if (data.type == 'ping') {
-			//let minuteLockScreen = userdata.userprofiles[0].Profile.screen.lock;
+			/*
 			if ((userdata.userprofiles) && (userdata.userprofiles.length > 0)) {
 				let minuteLockScreen = Number(userdata.userprofiles[0].Profile.lockState.autoLockScreen);
 				let minuteLogout = Number(userdata.userprofiles[0].Profile.offlineState.autoLogout);
@@ -35023,10 +35158,11 @@ module.exports = function ( jq, wsm) {
 			      document.dispatchEvent(event);
 					}
 				}
-				let modPingCounter = Number(data.counterping) % 10;
-				if (modPingCounter == 0) {
-					wsm.send(JSON.stringify({type: 'pong', myconnection: (userdata.id + '/' + userdata.username + '/' + userdata.hospitalId)}));
-				}
+			}
+			*/
+			let modPingCounter = Number(data.counterping) % 10;
+			if (modPingCounter == 0) {
+				wsm.send(JSON.stringify({type: 'pong', myconnection: (userdata.id + '/' + userdata.username + '/' + userdata.hospitalId)}));
 			}
 		} else if (data.type == 'unlockscreen') {
 			let eventName = 'unlockscreen';
@@ -35114,7 +35250,7 @@ module.exports = function ( jq, wsm) {
 	}
 }
 
-},{"../../case/mod/wrtc-common.js":22}],31:[function(require,module,exports){
+},{"../../case/mod/wrtc-common.js":22}],32:[function(require,module,exports){
 /* websocketmessage.js */
 module.exports = function ( jq, wsm ) {
 	const $ = jq;
