@@ -78,7 +78,7 @@ var doDownloadStudyArchive = function(studyID, usrArchiveFileName){
         archiveFileName = usrArchiveFileName;
       }
       var archiveFilePath = usrArchiveDir + '/' + archiveFileName;
-      var command = 'curl --user demo:demo http://localhost:8042/studies/' + studyID + '/archive > ' + archiveFilePath;
+      var command = 'curl --user demo:demo http://' + process.env.ORTHANC_IP + ':8042/studies/' + studyID + '/archive > ' + archiveFilePath;
       var stdout = await util.runcommand(command);
       setTimeout(()=> {
         resolve2({archive: zipPath + '/' + archiveFileName, result: stdout});
@@ -136,7 +136,7 @@ var doCallImportDicomFromArchive = function (studyID) {
 
 var doCallSeries = function(seriesId) {
   return new Promise(async function(resolve, reject){
-    let command = 'curl --user demo:demo http://localhost:8042/series/' + seriesId;
+    let command = 'curl --user demo:demo http://' + process.env.ORTHANC_IP + ':8042/series/' + seriesId;
     util.runcommand(command).then(async(stdout)=>{
       let seriesJSON = JSON.parse(stdout);
       resolve(seriesJSON);
@@ -146,7 +146,7 @@ var doCallSeries = function(seriesId) {
 
 var doCallStudy = function(studyId) {
   return new Promise(async function(resolve, reject){
-    let command = 'curl --user demo:demo http://localhost:8042/studies/' + studyId;
+    let command = 'curl --user demo:demo http://' + process.env.ORTHANC_IP + ':8042/studies/' + studyId;
     util.runcommand(command).then(async(stdout)=>{
       let studyJSON = JSON.parse(stdout);
       resolve(studyJSON);
@@ -197,7 +197,7 @@ module.exports = (app, wsServer, wsClient, monitor) => {
   app.post('/orthanc/study/list/today', function(req, res, next) {
     let todayFmt = formatTodayStr();
     log.info('todayFmt => ' + todayFmt)
-    let command = 'curl --user demo:demo http://localhost:8042/tools/find -d "{\\"Level\\":\\"Study\\",\\"Query\\":{\\"StudyDate\\": \\"' + todayFmt + '-\\"}, \\"Expand\\":true}"';
+    let command = 'curl --user demo:demo http://' + process.env.ORTHANC_IP + ':8042/tools/find -d "{\\"Level\\":\\"Study\\",\\"Query\\":{\\"StudyDate\\": \\"' + todayFmt + '-\\"}, \\"Expand\\":true}"';
     log.info('command=> ' + command);
     util.runcommand(command).then((stdout)=>{
       log.info('stdout=> ' + stdout);
@@ -206,7 +206,7 @@ module.exports = (app, wsServer, wsClient, monitor) => {
   });
 
   app.post('/orthanc/study/list/yesterday', function(req, res, next) {
-    let command = 'curl --user demo:demo http://localhost:8042/tools/find -d "{\\"Level\\":\\"Study\\",\\"Query\\":{\\"StudyDate\\": \\"' + getYesterdayStr() + '\\"}, \\"Expand\\":true}"';
+    let command = 'curl --user demo:demo http://' + process.env.ORTHANC_IP + ':8042/tools/find -d "{\\"Level\\":\\"Study\\",\\"Query\\":{\\"StudyDate\\": \\"' + getYesterdayStr() + '\\"}, \\"Expand\\":true}"';
     log.info('command=> ' + command);
     util.runcommand(command).then((stdout)=>{
       log.info('stdout=> ' + stdout);
@@ -221,7 +221,7 @@ module.exports = (app, wsServer, wsClient, monitor) => {
       lastMountStr = req.body.studyFromDate;
     }
     log.info('lastMountStr=> ' + lastMountStr);
-    let command = 'curl --user demo:demo http://localhost:8042/tools/find -d "{\\"Level\\":\\"Study\\",\\"Query\\":{\\"StudyDate\\": \\"' + lastMountStr + '-\\"}, \\"Expand\\":true}"';
+    let command = 'curl --user demo:demo http://' + process.env.ORTHANC_IP + ':8042/tools/find -d "{\\"Level\\":\\"Study\\",\\"Query\\":{\\"StudyDate\\": \\"' + lastMountStr + '-\\"}, \\"Expand\\":true}"';
     log.info('command=> ' + command);
     util.runcommand(command).then((stdout)=>{
       //log.info('stdout=> ' + stdout);
@@ -260,7 +260,7 @@ module.exports = (app, wsServer, wsClient, monitor) => {
 
   app.post('/orthanc/delete/study', async function(req, res, next) {
     let studyID = req.body.StudyID;
-    let command = 'curl --user demo:demo -X DELETE http://localhost:8042/studies/' + studyID;
+    let command = 'curl --user demo:demo -X DELETE http://' + process.env.ORTHANC_IP + ':8042/studies/' + studyID;
     let stdout = await util.runcommand(command);
     res.status(200).send({status: {code: 200}, result: JSON.parse(stdout)});
   });
@@ -276,7 +276,7 @@ module.exports = (app, wsServer, wsClient, monitor) => {
     let accessionNumber = req.body.accessionNumber
     let dicomImgCount = 0;
     let promiseList = new Promise(function(resolve2, reject2){
-      let command = 'curl --user demo:demo http://localhost:8042/tools/find -d "{\\"Level\\":\\"Series\\",\\"Query\\":{\\"AccessionNumber\\": \\"' + accessionNumber + '\\"}, \\"Expand\\":true}"';
+      let command = 'curl --user demo:demo http://' + process.env.ORTHANC_IP + ':8042/tools/find -d "{\\"Level\\":\\"Series\\",\\"Query\\":{\\"AccessionNumber\\": \\"' + accessionNumber + '\\"}, \\"Expand\\":true}"';
       util.runcommand(command).then(async(stdout)=>{
         let seriesJSON = JSON.parse(stdout);
         await seriesJSON.forEach((item, i) => {
@@ -297,14 +297,14 @@ module.exports = (app, wsServer, wsClient, monitor) => {
     let studyID = req.body.studyID;
     let command = 'curl --user demo:demo -X DELETE http://150.95.26.106:9043/studies/' + studyID;
     //let stdout = await util.runcommand(command);
-    command = 'curl --user demo:demo -X POST http://localhost:8042/modalities/cloud/store -d ' + studyID;
+    command = 'curl --user demo:demo -X POST http://' + process.env.ORTHANC_IP + ':8042/modalities/cloud/store -d ' + studyID;
     log.info('resend command=> ' + command);
     let stdout = await util.runcommand(command);
     log.info('resend output=> ' + stdout);
     let resJSON = JSON.parse(stdout);
     if ((resJSON.HttpStatus) && (resJSON.HttpStatus == 500) && (resJSON.HttpError)) {
       log.info('Start change image Routing=> ' + stdout);
-      command = 'curl --user demo:demo http://localhost:8042/modalities?expand';
+      command = 'curl --user demo:demo http://' + process.env.ORTHANC_IP + ':8042/modalities?expand';
       stdout = await util.runcommand(command);
       resJSON = JSON.parse(stdout);
       let cloudHost = resJSON.cloud.Host;
@@ -317,10 +317,10 @@ module.exports = (app, wsServer, wsClient, monitor) => {
       let cloudAET = resJSON.cloud.AET;
       let cloudPort = resJSON.cloud.Port;
       log.info('Start change image Routing to => ' + newCloudHost);
-      command = 'curl --user demo:demo -X PUT http://localhost:8042/modalities/cloud -d "{\\"AET\\" : \\"' + cloudAET + '\\", \\"Host\\": \\"' + newCloudHost +'\\", \\"Port\\": ' + cloudPort + '}"';
+      command = 'curl --user demo:demo -X PUT http://' + process.env.ORTHANC_IP + ':8042/modalities/cloud -d "{\\"AET\\" : \\"' + cloudAET + '\\", \\"Host\\": \\"' + newCloudHost +'\\", \\"Port\\": ' + cloudPort + '}"';
       stdout = await util.runcommand(command);
       setTimeout(async()=>{
-        command = 'curl --user demo:demo -X POST http://localhost:8042/modalities/cloud/store -d ' + studyID;
+        command = 'curl --user demo:demo -X POST http://' + process.env.ORTHANC_IP + ':8042/modalities/cloud/store -d ' + studyID;
         log.info('resend command=> ' + command);
         let stdout = await util.runcommand(command);
         log.info('resend output=> ' + stdout);
@@ -361,7 +361,7 @@ module.exports = (app, wsServer, wsClient, monitor) => {
   });
 
   app.post('/orthanc/reset/local', async function(req, res, next) {
-    let command = 'curl --user demo:demo -X POST http://localhost:8042/tools/reset';
+    let command = 'curl --user demo:demo -X POST http://' + process.env.ORTHANC_IP + ':8042/tools/reset';
     let stdout = await util.runcommand(command);
     log.info('stdout=> ' + stdout);
     res.status(200).send({status: {code: 200}, result: 'ok'});
@@ -525,6 +525,7 @@ module.exports = (app, wsServer, wsClient, monitor) => {
 
   app.post('/orthanc/test/transfer/dicom', async function(req, res) {
     // curl -X POST -H "Content-Type: application/json" http://localhost:3000/api/orthanc/test/transfer/dicom -d '{"StudyID": "fa73f496-53909cac-e32922ea-92fcff27-e88d05c7", "FileName": "test.zip"}'
+    // process.env.ORTHANC_IP
     let studyID = req.body.StudyID;
     let fileName = req.body.FileName;
     let caseId = req.body.caseId;
