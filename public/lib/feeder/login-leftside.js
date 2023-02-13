@@ -15,7 +15,7 @@
 
     const doCreateLogoBox = function(){
       let logoBox = $('<div style="position: relative; width: 100%;"></div>');
-      let logoImage = $('<img src="https://radconnext.info/images/logo/radconnext-logo.png" style="width: 230px; height: auto;"/>');
+      let logoImage = $('<img src="https://radconnext.tech/images/logo/radconnext-logo.png" style="width: 230px; height: auto;"/>');
       return $(logoBox).append($(logoImage));
     }
 

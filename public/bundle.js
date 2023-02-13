@@ -16,10 +16,10 @@ $( document ).ready(function() {
     home.doLoadHome();
 	};
 
-  let jqueryUiCssUrl = "https://radconnext.info/lib/jquery-ui.min.css";
-  let jqueryUiJsUrl = "https://radconnext.info/lib/jquery-ui.min.js";
-  let jqueryLoadingUrl = 'https://radconnext.info/lib/jquery.loading.min.js';
-  let jqueryNotifyUrl = 'https://radconnext.info/lib/notify.min.js';
+  let jqueryUiCssUrl = "https://radconnext.tech/lib/jquery-ui.min.css";
+  let jqueryUiJsUrl = "https://radconnext.tech/lib/jquery-ui.min.js";
+  let jqueryLoadingUrl = 'https://radconnext.tech/lib/jquery.loading.min.js';
+  let jqueryNotifyUrl = 'https://radconnext.tech/lib/notify.min.js';
 
   $('head').append('<script src="' + jqueryUiJsUrl + '"></script>');
   $('head').append('<link rel="stylesheet" href="' + jqueryUiCssUrl + '" type="text/css" />');
@@ -44,7 +44,7 @@ module.exports = function ( jq ) {
 
 	  $('body').loading({overlay: $("#overlay"), stoppable: true});
 
-		//$('body').loading('start');
+		$('body').loading('start');
 		$('body').load('form/login.html', function(){
 			$('#LeftSideBox').load('/lib/feeder/login-leftside.js', function(leftsideJS){
 				let leftsideResult = eval(leftsideJS);

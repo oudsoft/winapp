@@ -92,26 +92,6 @@ var doDownloadStudyArchive = function(studyID, usrArchiveFileName){
 
 var doUploadArchive = function (filepath, type) {
   log.info('upload filepath=>' + filepath);
-  /*
-  var data = new formData();
-  data.append('type', 'zip');
-  data.append('archive', createReadStream(filepath));
-  data.append('uploadby', 'rpp');
-  var uploadArchiveUrl = 'https://radconnext.info/api/upload/dicom/archive'
-  const options = {
-    method: 'POST',
-    body: data,
-    headers: {
-      ...data.getHeaders()
-    },
-  }
-  return fetch(uploadArchiveUrl, options).then(res => {
-    if (res.ok) {
-      return res.json()
-    }
-    throw new Error(res.statusText)
-  });
-  */
   return new Promise(async function(resolve, reject){
     var command = 'curl --list-only --user sasurean:drinking@min -T ' + filepath + ' ftp://150.95.26.106/Radconnext/public/img/usr/upload/temp/  -v';
     log.info('ftp command=>' + command);
@@ -125,7 +105,7 @@ var doUploadArchive = function (filepath, type) {
 
 var doCallImportDicomFromArchive = function (studyID) {
   return new Promise(async function(resolve, reject){
-    let command = 'curl -k -X POST https://radconnext.info/api/orthancproxy/importarchive/5/' + studyID + '/rpp';
+    let command = 'curl -k -X POST ' + process.env.RADCONNEXT_URL + '/api/orthancproxy/importarchive/5/' + studyID + '/rpp';
     log.info('command=> ' + command);
     util.runcommand(command).then((stdout)=>{
       log.info('stdout=> ' + stdout);
@@ -157,7 +137,7 @@ var doCallStudy = function(studyId) {
 var doResetImageCounter = function(studyID){
   return new Promise(async function(resolve, reject){
     let addNewDicomParams = '{\\"hospitalId\\": \\"5\\", \\"resourceType\\": \\"study\\", \\"resourceId\\": \\"' + studyID + '\\"}';
-    let command = 'curl -k -H "Content-Type: application/json" -X POST https://radconnext.info/api/dicomtransferlog/add -d "' + addNewDicomParams + '"';
+    let command = 'curl -k -H "Content-Type: application/json" -X POST ' + process.env.RADCONNEXT_URL + '/api/dicomtransferlog/add -d "' + addNewDicomParams + '"';
     log.info('add new command=> ' + command);
     let stdout = await util.runcommand(command);
     log.info('stdout=> ' + stdout);
@@ -327,7 +307,7 @@ module.exports = (app, wsServer, wsClient, monitor) => {
         let resJSON = JSON.parse(stdout);
         setTimeout(async()=>{
           let addNewDicomParams = '{\\"hospitalId\\": \\"5\\", \\"resourceType\\": \\"study\\", \\"resourceId\\": \\"' + studyID + '\\"}';
-          command = 'curl -k -H "Content-Type: application/json" -X POST https://radconnext.info/api/dicomtransferlog/add -d "' + addNewDicomParams + '"';
+          command = 'curl -k -H "Content-Type: application/json" -X POST ' + process.env.RADCONNEXT_URL + '/api/dicomtransferlog/add -d "' + addNewDicomParams + '"';
           log.info('add new command=> ' + command);
           stdout = await util.runcommand(command);
           log.info('stdout=> ' + stdout);
@@ -338,7 +318,7 @@ module.exports = (app, wsServer, wsClient, monitor) => {
       //res.status(500).send({status: {code: 500}, result: resJSON});
     } else {
       let addNewDicomParams = '{\\"hospitalId\\": \\"5\\", \\"resourceType\\": \\"study\\", \\"resourceId\\": \\"' + studyID + '\\"}';
-      command = 'curl -k -H "Content-Type: application/json" -X POST https://radconnext.info/api/dicomtransferlog/add -d "' + addNewDicomParams + '"';
+      command = 'curl -k -H "Content-Type: application/json" -X POST ' + process.env.RADCONNEXT_URL + '/api/dicomtransferlog/add -d "' + addNewDicomParams + '"';
       log.info('add new command=> ' + command);
       stdout = await util.runcommand(command);
       log.info('stdout=> ' + stdout);
@@ -454,7 +434,7 @@ module.exports = (app, wsServer, wsClient, monitor) => {
           let triggerRadioParams = {studyID: studyID, caseId: caseId, userId: userId, radioId: radioId, Case_PatientHRLink: convertResult};
           let rqParams = {
             body: triggerRadioParams,
-            url: 'https://radconnext.info/api/cases/updatecase/trigger',
+            url: process.env.RADCONNEXT_URL + '/api/cases/updatecase/trigger',
             method: 'post'
           }
           util.proxyRequest(rqParams).then(async(proxyRes)=>{
@@ -466,7 +446,7 @@ module.exports = (app, wsServer, wsClient, monitor) => {
           let triggerRadioParams = {studyID: studyID, userId: userId, Case_PatientHRLink: convertResult};
           let rqParams = {
             body: triggerRadioParams,
-            url: 'https://radconnext.info/api/cases/newcase/trigger',
+            url: process.env.RADCONNEXT_URL + '/api/cases/newcase/trigger',
             method: 'post'
           }
           util.proxyRequest(rqParams).then(async(proxyRes)=>{
@@ -560,7 +540,7 @@ module.exports = (app, wsServer, wsClient, monitor) => {
         let params = {caseId: caseId, Case_PatientHRLinks: ob[0]};
         let rqParams = {
           body: params,
-          url: 'https://radconnext.info/api/cases/append/patienthrlink',
+          url: process.env.RADCONNEXT_URL + '/api/cases/append/patienthrlink',
           method: 'post'
         }
         util.proxyRequest(rqParams).then(async(proxyRes)=>{

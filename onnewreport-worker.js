@@ -19,7 +19,8 @@ const username = process.env.LOCAL_NAME; /*'orthanc'*/
 const radconApiUrl = process.env.RADCONNEXT_URL; /* 'https://radconnext.info'*/
 const userId = process.env.LOCAL_USER_ID; /* 1 */
 const tempDest = process.env.LOCAL_TEMP_DIR; /* D:\\Radconnext\\temp\\ */
-const orthancUrl = 'http://localhost:8042';
+// const orthancUrl = 'http://localhost:8042';
+const orthancUrl = 'http://' + process.env.ORTHANC_IP + ':8042';
 const user = 'demo';
 const pass = 'demo';
 
@@ -27,7 +28,10 @@ const doDownloadFile = function(url, dest, cb) {
   var file = fs.createWriteStream(dest);
   https.get(url, function(response) {
     response.pipe(file);
-    file.on('finish', function() {
+    file.on('finish', async function() {
+      if (process.env.OS_NAME === 'LINUX') {
+        let output = await util.runcommand('chmod 0777 ' + dest);
+      }
       file.close(cb);
     });
   });

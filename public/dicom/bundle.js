@@ -781,7 +781,7 @@ module.exports = function ( jq ) {
       $(progBar.progressBox).screencenter({offset: {x: 50, y: 50}});
       let apiURL = apiurl;
       if (window.location.hostname == 'localhost') {
-        apiURL = 'https://radconnext.info' + apiurl;
+        apiURL = 'https://radconnext.tech' + apiurl;
       }
       $.ajax({
         url: apiURL,
@@ -796,7 +796,7 @@ module.exports = function ( jq ) {
               var event = new CustomEvent('response-progress', {detail: {event: evt, resfrom: apiurl}});
               document.dispatchEvent(event);
               */
-							
+
 							/*
               let loaded = evt.loaded;
               let total = evt.total;
@@ -834,7 +834,7 @@ module.exports = function ( jq ) {
 		return new Promise(function(resolve, reject) {
       let apiURL = apiurl;
       if (window.location.hostname == 'localhost') {
-        apiURL = 'https://radconnext.info' + apiurl;
+        apiURL = 'https://radconnext.tech' + apiurl;
       }
 			$.get(apiURL, params, function(data){
 				resolve(data);
@@ -2408,10 +2408,11 @@ module.exports = function ( jq ) {
 			let callZoomMsg = {type: 'callzoom', sendTo: radioSockets[0].id, openurl: zoomMeeting.join_url, password: zoomMeeting.password, topic: zoomMeeting.topic, sender: userdata.username, hospitalId: userdata.hospitalId}
 			//let myWsm = main.doGetWsm();
 			//console.log(JSON.stringify(callZoomMsg));
-			const main = require('../main.js');
-			let myWsm = main.doGetWsm();
-			myWsm.send(JSON.stringify(callZoomMsg));
 			window.open(zoomMeeting.start_url, '_blank');
+			if (util.wsm) {
+				util.wsm.send(JSON.stringify(callZoomMsg));
+				window.open(zoomMeeting.start_url, '_blank');
+			}
 		} else {
 			//radio offline
 			let userConfirm = confirm('ระบบไม่สามารถติดต่อไปยังปลายทางของคุณได้ในขณะนี้\nตุณต้องการส่งข้อมูล conference ไปให้ปลายทางผ่านช่องทางอื่น เช่น อีเมล์ ไลน์ หรทอไม่\nคลิกตกลงหรือ OK ถ้าต้องการ');
@@ -2527,7 +2528,7 @@ module.exports = function ( jq ) {
 		let reportRes = await common.doCallApi('/api/casereport/select/' + caseId, {});
 		//console.log(reportRes);
 		if (reportRes.Records.length > 0){
-			let pdfReportLink = 'https://radconnext.info' + reportRes.Records[0].PDF_Filename  + '?t=' + common.genUniqueID();
+			let pdfReportLink = 'https://radconnext.tech' + reportRes.Records[0].PDF_Filename  + '?t=' + common.genUniqueID();
 			console.log(pdfReportLink);
 			//let pdfDialog = doCreateResultPDFDialog(pdfReportLink);
 			let pdfDialog = $('<object data="' + pdfReportLink + '" type="application/pdf" width="99%" height="380"></object>');
@@ -2846,7 +2847,7 @@ module.exports = function ( jq ) {
 	}
 }
 
-},{"../../local/dicom/mod//case-creator.js":25,"../main.js":1,"./apiconnect.js":2,"./case-event-log-msg.js":3,"./casecounter.js":5,"./commonlib.js":6,"./utilmod.js":19}],5:[function(require,module,exports){
+},{"../../local/dicom/mod//case-creator.js":25,"./apiconnect.js":2,"./case-event-log-msg.js":3,"./casecounter.js":5,"./commonlib.js":6,"./utilmod.js":19}],5:[function(require,module,exports){
 /* casecounter.js */
 module.exports = function ( jq ) {
 	const $ = jq;
@@ -3610,6 +3611,9 @@ module.exports = function ( jq ) {
 	  if (wsm) {
 	  	let userdata = JSON.parse(localStorage.getItem('userdata'));
 	    wsm.send(JSON.stringify({type: 'logout', username: userdata.username}));
+			if (userdata.usertypeId == 4){
+				localStorage.removeItem('draftbackup');
+			}
 	  }
 	  localStorage.removeItem('token');
 		localStorage.removeItem('userdata');
@@ -3654,7 +3658,7 @@ module.exports = function ( jq ) {
 			$('body').loading('stop');
 		});
 		*/
-		let downloadURL = 'https://radconnext.info/img/usr/zip/' + dicomFilename;
+		let downloadURL = 'https://radconnext.tech/img/usr/zip/' + dicomFilename;
 		console.log(downloadURL);
 		let pom = document.createElement('a');
 		pom.setAttribute('href', downloadURL);
@@ -4006,7 +4010,7 @@ module.exports = function ( jq ) {
 			let hospitalId = userdata.hospitalId;
 			let userId = userdata.id;
 			let rqParams = { hospitalId: hospitalId, userId: userId, studyDesc: studyDesc, protocolName: protocolName};
-			let apiUrl = 'https://radconnext.info/api/scanpartaux/select';
+			let apiUrl = 'https://radconnext.tech/api/scanpartaux/select';
 			try {
 				/*
 				let response = await doCallApi(apiUrl, rqParams);
@@ -9594,11 +9598,11 @@ module.exports = function ( jq ) {
 
 		let wsUrl = wsProtocol + hostname + ':' + port + '/' + username + '/' + hospitalId + '?type=' + connecttype;
 		if (hostname == 'localhost') {
-			wsUrl = 'wss://radconnext.info/' + username + '/' + hospitalId + '?type=' + connecttype;
+			wsUrl = 'wss://radconnext.tech/' + username + '/' + hospitalId + '?type=' + connecttype;
 		}
 		*/
 
-		let wsUrl = 'wss://radconnext.info/' + username + '/' + hospitalId + '?type=' + connecttype;
+		let wsUrl = 'wss://radconnext.tech/' + username + '/' + hospitalId + '?type=' + connecttype;
 	  wsm = new WebSocket(wsUrl);
 		wsm.onopen = function () {
 			//console.log('Master Websocket is connected to the signaling server')
@@ -21620,13 +21624,13 @@ $( document ).ready(function() {
     }
 	};
 
-  let jqueryUiCssUrl = "https://radconnext.info/lib/jquery-ui.min.css";
-  let jqueryUiJsUrl = "https://radconnext.info/lib/jquery-ui.min.js";
-  let jqueryLoadingUrl = 'https://radconnext.info/lib/jquery.loading.min.js';
-  let jqueryNotifyUrl = 'https://radconnext.info/lib/notify.min.js';
-  let jssipUrl = "https://radconnext.info/lib/jssip-3.9.0.min.js";
-  let sipPhonePlugin = "https://radconnext.info/setting/plugin/jquery-sipphone-income-plugin.js";
-  let radUtilityPlugin = "https://radconnext.info/setting/plugin/jquery-radutil-plugin.js";
+  let jqueryUiCssUrl = "https://radconnext.tech/lib/jquery-ui.min.css";
+  let jqueryUiJsUrl = "https://radconnext.tech/lib/jquery-ui.min.js";
+  let jqueryLoadingUrl = 'https://radconnext.tech/lib/jquery.loading.min.js';
+  let jqueryNotifyUrl = 'https://radconnext.tech/lib/notify.min.js';
+  let jssipUrl = "https://radconnext.tech/lib/jssip-3.9.0.min.js";
+  let sipPhonePlugin = "https://radconnext.tech/setting/plugin/jquery-sipphone-income-plugin.js";
+  let radUtilityPlugin = "https://radconnext.tech/setting/plugin/jquery-radutil-plugin.js";
 
   $('head').append('<script src="' + jqueryUiJsUrl + '"></script>');
   $('head').append('<link rel="stylesheet" href="' + jqueryUiCssUrl + '" type="text/css" />');
@@ -21650,17 +21654,17 @@ const doLoadLogin = function(){
 }
 
 const doLoadMainPage = function(){
-  let printjs = 'https://radconnext.info/lib/print/print.min.js';
-  let excelexportjs = 'https://radconnext.info/lib/excel/excelexportjs.js';
-  let jquerySimpleUploadUrl = 'https://radconnext.info/lib/simpleUpload.min.js';
-  let patientHistoryPluginUrl = "https://radconnext.info/setting/plugin/jquery-patient-history-image-plugin.js";
-	let countdownclockPluginUrl = "https://radconnext.info/setting/plugin/jquery-countdown-clock-plugin.js";
-	let scanpartPluginUrl = "https://radconnext.info/setting/plugin/jquery-scanpart-plugin.js";
-	let customUrgentPlugin = "https://radconnext.info/setting/plugin/jquery-custom-urgent-plugin.js";
-	let controlPagePlugin = "https://radconnext.info/setting/plugin/jquery-controlpage-plugin.js"
-  let customSelectPlugin = "https://radconnext.info/setting/plugin/jquery-custom-select-plugin.js";
-  let chatBoxPlugin = "https://radconnext.info/setting/plugin/jquery-chatbox-plugin.js";
-  let readystatePlugin = "https://radconnext.info/setting/plugin/jqury-readystate-plugin.js";
+  let printjs = 'https://radconnext.tech/lib/print/print.min.js';
+  let excelexportjs = 'https://radconnext.tech/lib/excel/excelexportjs.js';
+  let jquerySimpleUploadUrl = 'https://radconnext.tech/lib/simpleUpload.min.js';
+  let patientHistoryPluginUrl = "https://radconnext.tech/setting/plugin/jquery-patient-history-image-plugin.js";
+	let countdownclockPluginUrl = "https://radconnext.tech/setting/plugin/jquery-countdown-clock-plugin.js";
+	let scanpartPluginUrl = "https://radconnext.tech/setting/plugin/jquery-scanpart-plugin.js";
+	let customUrgentPlugin = "https://radconnext.tech/setting/plugin/jquery-custom-urgent-plugin.js";
+	let controlPagePlugin = "https://radconnext.tech/setting/plugin/jquery-controlpage-plugin.js"
+  let customSelectPlugin = "https://radconnext.tech/setting/plugin/jquery-custom-select-plugin.js";
+  let chatBoxPlugin = "https://radconnext.tech/setting/plugin/jquery-chatbox-plugin.js";
+  let readystatePlugin = "https://radconnext.tech/setting/plugin/jqury-readystate-plugin.js";
 
   $('head').append('<script src="' + printjs + '"></script>');
   $('head').append('<script src="' + excelexportjs + '"></script>');
@@ -21675,20 +21679,20 @@ const doLoadMainPage = function(){
   $('head').append('<script src="' + chatBoxPlugin + '"></script>');
   $('head').append('<script src="' + readystatePlugin + '"></script>');
 
-  $('head').append('<link rel="stylesheet" href="https://radconnext.info/lib/tui-image-editor.min.css" type="text/css" />');
-	$('head').append('<link rel="stylesheet" href="https://radconnext.info/lib/tui-color-picker.css" type="text/css" />');
-  $('head').append('<link rel="stylesheet" href="https://radconnext.info/lib/print/print.min.css" type="text/css" />');
-	$('head').append('<link rel="stylesheet" href="https://radconnext.info/case/css/scanpart.css" type="text/css" />');
-  $('head').append('<link rel="stylesheet" href="https://radconnext.info/case/css/custom-select.css" type="text/css" />');
+  $('head').append('<link rel="stylesheet" href="https://radconnext.tech/lib/tui-image-editor.min.css" type="text/css" />');
+	$('head').append('<link rel="stylesheet" href="https://radconnext.tech/lib/tui-color-picker.css" type="text/css" />');
+  $('head').append('<link rel="stylesheet" href="https://radconnext.tech/lib/print/print.min.css" type="text/css" />');
+	$('head').append('<link rel="stylesheet" href="https://radconnext.tech/case/css/scanpart.css" type="text/css" />');
+  $('head').append('<link rel="stylesheet" href="https://radconnext.tech/case/css/custom-select.css" type="text/css" />');
 
   //$('body').append($('<div id="overlay"><div class="loader"></div></div>'));
 
   //$('body').loading({overlay: $("#overlay"), stoppable: true});
 
-  $('head').append('<link rel="stylesheet" href="https://radconnext.info/stylesheets/style.css" type="text/css" />');
-  $('head').append('<link rel="stylesheet" href="https://radconnext.info/case/css/style.css" type="text/css" />');
-  $('head').append('<link rel="stylesheet" href="https://radconnext.info/case/css/main-fix.css" type="text/css" />');
-  $('head').append('<link rel="stylesheet" href="https://radconnext.info/case/css/menu-fix.css" type="text/css" />');
+  $('head').append('<link rel="stylesheet" href="https://radconnext.tech/stylesheets/style.css" type="text/css" />');
+  $('head').append('<link rel="stylesheet" href="https://radconnext.tech/case/css/style.css" type="text/css" />');
+  $('head').append('<link rel="stylesheet" href="https://radconnext.tech/case/css/main-fix.css" type="text/css" />');
+  $('head').append('<link rel="stylesheet" href="https://radconnext.tech/case/css/menu-fix.css" type="text/css" />');
 
   document.addEventListener("triggercasecounter", casecounter.onCaseChangeStatusTrigger);
   document.addEventListener("triggerconsultcounter", casecounter.onConsultChangeStatusTrigger);
@@ -21899,9 +21903,9 @@ module.exports = function ( jq ) {
 	const submain = require('./submainlib.js')($);
 
   const phProp = {
-    attachFileUploadApiUrl: 'https://radconnext.info/api/uploadpatienthistory',
-    scannerUploadApiUrl: 'https://radconnext.info/api/scannerupload',
-    captureUploadApiUrl: 'https://radconnext.info/api/captureupload',
+    attachFileUploadApiUrl: 'https://radconnext.tech/api/uploadpatienthistory',
+    scannerUploadApiUrl: 'https://radconnext.tech/api/scannerupload',
+    captureUploadApiUrl: 'https://radconnext.tech/api/captureupload',
     attachFileUploadIconUrl: '/images/paperclip-icon.png',
     scannerUploadIconUrl: '/images/scanner-icon.png',
     captureUploadIconUrl: '/images/screen-capture-icon.png',
@@ -22345,8 +22349,8 @@ module.exports = function ( jq ) {
 
 			let scanpartSettings = {
         iconCmdUrl: '/images/case-incident.png',
-        loadOriginUrl: 'https://radconnext.info/api/scanpartref/list',
-				addScanpartItemUrl: 'https://radconnext.info/api/scanpartref/add',
+        loadOriginUrl: 'https://radconnext.tech/api/scanpartref/list',
+				addScanpartItemUrl: 'https://radconnext.tech/api/scanpartref/add',
 				externalStyle: {'margin-top': '67px'},
 				headerBackgroundColor: common.headBackgroundColor,
 				selectedMainJson: scanparts,
@@ -22619,7 +22623,7 @@ module.exports = function ( jq ) {
 		if (attachFiles.length > 0) {
 			pnHistories = [];
 			for (let a=0; a < attachFiles.length; a++) {
-				pnHistories.push({link: 'https://radconnext.info/img/usr/zip/' + attachFiles[a]})
+				pnHistories.push({link: 'https://radconnext.tech/img/usr/zip/' + attachFiles[a]})
 			}
 			defualtValue.pn_history = pnHistories;
 			phProp.fileType = 'application/zip';
@@ -22780,7 +22784,7 @@ module.exports = function ( jq ) {
       let radioCustomSelectorBox = $('<div id="Radiologist"></div>');
       $(radioCustomSelectorBox).appendTo($(tableCell));
       let customSelectPluginOption = {
-        loadOptionsUrl: 'https://radconnext.info/api/radiologist/state/current',
+        loadOptionsUrl: 'https://radconnext.tech/api/radiologist/state/current',
         /* "font-family": "THSarabunNew", "font-size": "24px",  */
         externalStyle: {"width": "410px", "line-height": "35px", "min-height": "35px"},
         startLoad: function(){$('#Radiologist').loading('start');},

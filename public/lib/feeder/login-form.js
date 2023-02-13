@@ -20,7 +20,7 @@
     const doCallLoginApi = function(user) {
       return new Promise(function(resolve, reject) {
         tryLoginCount += 1;
-        var loginApiUri = 'https://radconnext.info/api/login/';
+        var loginApiUri = 'https://radconnext.tech/api/login/';
         var params = user;
         $.post(loginApiUri, params, function(response){
     			resolve(response);
@@ -33,7 +33,7 @@
 
     const doGetCheckUsername = function(username){
   		return new Promise(function(resolve, reject) {
-  			var existUsernameApiUri = 'https://radconnext.info/api/users/searchusername/' + username;
+  			var existUsernameApiUri = 'https://radconnext.tech/api/users/searchusername/' + username;
   			var params = {username: username};
   			$.get(existUsernameApiUri, params, function(response){
   				resolve(response);
@@ -46,7 +46,7 @@
 
     const doCallSendResetPwdEmail = function(yourEmail, username, userId) {
   		return new Promise(function(resolve, reject) {
-        var existEmailApiUri = 'https://radconnext.info/api/resettask/new';
+        var existEmailApiUri = 'https://radconnext.tech/api/resettask/new';
         var params = {email: yourEmail, username: username, userId: userId};
         $.post(existEmailApiUri, params, function(response){
     			resolve(response);
